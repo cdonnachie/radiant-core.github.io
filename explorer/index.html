@@ -174,13 +174,27 @@
 
         /* TOKEN GRID */
         .token-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 16px; margin-bottom: 24px; }
-        .token-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 20px; transition: all 0.2s; cursor: pointer; }
+        .token-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; transition: all 0.2s; cursor: pointer; }
         .token-card:hover { border-color: var(--border-light); transform: translateY(-1px); }
+        .token-card .card-body { padding: 16px 20px 20px; }
         .token-card .top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
         .token-card .name { font-weight: 600; font-size: 1rem; }
         .token-card .ticker { color: var(--text-muted); font-size: 0.82rem; }
         .token-card .ref { font-family: monospace; font-size: 0.75rem; color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-top: 6px; }
         .token-card .meta { display: flex; gap: 12px; margin-top: 10px; font-size: 0.8rem; color: var(--text-muted); }
+        /* TOKEN IMAGE */
+        .token-img-wrap { width: 100%; aspect-ratio: 1; background: #0d1520; overflow: hidden; display: flex; align-items: center; justify-content: center; max-height: 220px; }
+        .token-img-wrap img { width: 100%; height: 100%; object-fit: contain; display: block; }
+        .token-img-wrap .no-img { font-size: 2.5rem; opacity: 0.18; }
+        .token-img-wrap.thumb { width: 48px; height: 48px; min-width: 48px; border-radius: 8px; aspect-ratio: unset; max-height: unset; flex-shrink: 0; }
+        /* TOKEN DETAIL HERO */
+        .token-hero { display: flex; gap: 24px; align-items: flex-start; margin-bottom: 24px; flex-wrap: wrap; }
+        .token-hero-img { width: 160px; min-width: 160px; height: 160px; border-radius: 12px; background: #0d1520; border: 1px solid var(--border); overflow: hidden; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .token-hero-img img { width: 100%; height: 100%; object-fit: contain; }
+        .token-hero-img .no-img { font-size: 3rem; opacity: 0.2; }
+        .token-hero-info { flex: 1; min-width: 0; }
+        .hashstamp-wrap { display: flex; align-items: center; gap: 12px; padding: 10px 20px; border-bottom: 1px solid var(--border); font-size: 0.82rem; color: var(--text-muted); }
+        .hashstamp-wrap img { width: 32px; height: 32px; object-fit: contain; border-radius: 4px; background: white; image-rendering: pixelated; }
 
         /* SEARCH RESULTS */
         .search-section { margin-bottom: 32px; }
@@ -320,7 +334,7 @@
 
 <script>
 // ─── CONFIG ───
-const DEFAULT_API = 'https://radiantcore.org/api';
+const DEFAULT_API = 'http://localhost:8000';
 let API_BASE = localStorage.getItem('rxd_explorer_api') || DEFAULT_API;
 const app = document.getElementById('app');
 
@@ -436,9 +450,9 @@ function parseHeader(hex) {
     };
 }
 
-const TOKEN_TYPES = { 1: 'FT', 2: 'NFT', 3: 'DAT', 4: 'dMint', 5: 'WAVE', 6: 'Container', 7: 'Authority' };
+const TOKEN_TYPES = { 1: 'FT', 2: 'NFT', 3: 'DATA', 4: 'dMint', 5: 'WAVE', 6: 'Container', 7: 'Authority' };
 const TYPE_CLASSES = { 1: 'badge-ft', 2: 'badge-nft', 3: 'badge-dat', 4: 'badge-dmint', 5: 'badge-wave', 6: 'badge-container', 7: 'badge-authority' };
-const TYPE_STR_TO_ID = { 'FT': 1, 'NFT': 2, 'DAT': 3, 'dMint': 4, 'DMINT': 4, 'WAVE': 5, 'Container': 6, 'Authority': 7 };
+const TYPE_STR_TO_ID = { 'FT': 1, 'NFT': 2, 'DAT': 3, 'DATA': 3, 'dMint': 4, 'DMINT': 4, 'WAVE': 5, 'Container': 6, 'Authority': 7 };
 function resolveTypeId(t) {
     if (t.type_id != null) return t.type_id;
     if (typeof t.type === 'number') return t.type;
@@ -685,11 +699,17 @@ async function renderDashboard() {
         tokenStatsHTML += '<div style="padding:20px;display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;">';
         if (glyphR.total_tokens != null) tokenStatsHTML += `<div style="text-align:center"><div style="font-size:1.3rem;font-weight:700;color:var(--accent)">${fmtNum(glyphR.total_tokens)}</div><div style="font-size:0.78rem;color:var(--text-muted);text-transform:uppercase">Total</div></div>`;
         const byType = glyphR.by_type || {};
+        const TYPE_LABEL_MAP = { 'DAT': 'DATA' };
+        const TYPE_EXCLUDE = new Set(['unknown']);
         for (const [k, v] of Object.entries(byType)) {
-            tokenStatsHTML += `<div style="text-align:center"><div style="font-size:1.3rem;font-weight:700;color:var(--accent)">${fmtNum(v)}</div><div style="font-size:0.78rem;color:var(--text-muted);text-transform:uppercase">${k}</div></div>`;
+            if (TYPE_EXCLUDE.has(k.toLowerCase())) continue;
+            const label = TYPE_LABEL_MAP[k] || k;
+            tokenStatsHTML += `<div style="text-align:center"><div style="font-size:1.3rem;font-weight:700;color:var(--accent)">${fmtNum(v)}</div><div style="font-size:0.78rem;color:var(--text-muted);text-transform:uppercase">${label}</div></div>`;
         }
+        const VERSION_EXCLUDE = new Set(['unknown', 'glyph_1', 'glyph_2']);
         if (glyphR.by_version) {
             for (const [k, v] of Object.entries(glyphR.by_version)) {
+                if (VERSION_EXCLUDE.has(k)) continue;
                 tokenStatsHTML += `<div style="text-align:center"><div style="font-size:1.3rem;font-weight:700;color:var(--purple)">${fmtNum(v)}</div><div style="font-size:0.78rem;color:var(--text-muted);text-transform:uppercase">${k}</div></div>`;
             }
         }
@@ -861,13 +881,20 @@ async function renderTokens(typeFilter = null) {
         const name = t.name || 'Unnamed Token';
         const ticker = t.ticker || '';
         const typeId = resolveTypeId(t);
+        const hasImg = (t.remote && t.remote.url) || (t.remote && t.remote.hashstamp) || (t.embed && t.embed.data);
+        const cardImgHtml = hasImg
+            ? `<div class="token-img-wrap">${tokenImageHtml(t)}</div>`
+            : '';
         gridHTML += `<div class="token-card" onclick="navigate('/token/${navRef}')">
-            <div class="top"><span class="name">${escHTML(name)}</span>${typeBadge(typeId)}</div>
-            ${ticker ? `<span class="ticker">${escHTML(ticker)}</span>` : ''}
-            <div class="ref" title="${rawRef}">${displayRef || rawRef}</div>
-            <div class="meta">
-                ${t.total_supply != null ? `<span>Supply: ${fmtNum(t.total_supply)}</span>` : ''}
-                ${t.decimals != null ? `<span>Dec: ${t.decimals}</span>` : ''}
+            ${cardImgHtml}
+            <div class="card-body">
+                <div class="top"><span class="name">${escHTML(name)}</span>${typeBadge(typeId)}</div>
+                ${ticker ? `<span class="ticker">${escHTML(ticker)}</span>` : ''}
+                <div class="ref" title="${rawRef}">${displayRef || rawRef}</div>
+                <div class="meta">
+                    ${t.total_supply != null ? `<span>Supply: ${fmtNum(t.total_supply)}</span>` : ''}
+                    ${t.decimals != null ? `<span>Dec: ${t.decimals}</span>` : ''}
+                </div>
             </div>
         </div>`;
     }
@@ -886,6 +913,32 @@ async function renderTokens(typeFilter = null) {
 }
 
 function escHTML(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+
+function tokenImageUrl(t) {
+    if (t.remote && t.remote.url) return t.remote.url.replace(/^ipfs:\/\//, 'https://ipfs.io/ipfs/');
+    if (t.embed && t.embed.data && t.embed.type) return `data:${t.embed.type};hex,` + t.embed.data;
+    return null;
+}
+function tokenImageHtml(t, cls = '') {
+    const url = tokenImageUrl(t);
+    if (url && t.embed && t.embed.data && t.embed.type) {
+        const b64 = hexToBase64(t.embed.data);
+        return `<img src="data:${t.embed.type};base64,${b64}" alt="" loading="lazy" onerror="this.parentElement.innerHTML='<span class=no-img>&#x1f5bc;</span>'" ${cls ? `class="${cls}"` : ''}>`;
+    }
+    if (url) return `<img src="${escHTML(url)}" alt="" loading="lazy" onerror="this.parentElement.innerHTML='<span class=no-img>&#x1f5bc;</span>'" ${cls ? `class="${cls}"` : ''}>`;
+    return '<span class="no-img">&#x1f5bc;</span>';
+}
+function hexToBase64(hex) {
+    const bytes = new Uint8Array(hex.match(/.{1,2}/g).map(b => parseInt(b, 16)));
+    let bin = ''; bytes.forEach(b => bin += String.fromCharCode(b));
+    return btoa(bin);
+}
+function hashstampHtml(t) {
+    if (!t.remote || !t.remote.hashstamp) return '';
+    const b64 = hexToBase64(t.remote.hashstamp);
+    const hashHex = t.remote.hash ? `<span class="mono" style="font-size:0.75rem">${t.remote.hash.slice(0,16)}…</span>` : '';
+    return `<div class="hashstamp-wrap"><img src="data:image/webp;base64,${b64}" title="HashStamp (on-chain thumbnail)">${hashHex}<span>HashStamp</span></div>`;
+}
 
 // ─── TOKEN DETAIL ───
 async function renderTokenDetail(ref) {
@@ -907,7 +960,10 @@ async function renderTokenDetail(ref) {
     const protocols = t.protocols || [];
     const displayRef = refToDisplay(ref);
 
-    let infoHTML = `<div class="detail-panel">
+    const imgHtml = tokenImageUrl(t) || (t.embed && t.embed.data)
+        ? `<div class="token-hero-img">${tokenImageHtml(t)}</div>` : `<div class="token-hero-img"><span class="no-img">&#x1f5bc;</span></div>`;
+
+    let infoHTML = `<div class="token-hero">${imgHtml}<div class="token-hero-info"><div class="detail-panel">
         <div class="detail-row"><div class="detail-label">Name</div><div class="detail-value" style="font-weight:600;font-size:1.1rem">${escHTML(name)} ${ticker ? `(${escHTML(ticker)})` : ''}</div></div>
         <div class="detail-row"><div class="detail-label">Type</div><div class="detail-value">${typeBadge(typeId)}</div></div>
         <div class="detail-row"><div class="detail-label">Reference</div><div class="detail-value"><span class="mono" style="font-size:0.78rem">${displayRef || ref}</span> ${copyBtn(ref)}</div></div>
@@ -918,7 +974,11 @@ async function renderTokenDetail(ref) {
         ${t.deploy_txid ? `<div class="detail-row"><div class="detail-label">Deploy TxID</div><div class="detail-value"><a href="#/tx/${t.deploy_txid}" class="mono" style="font-size:0.78rem">${truncHash(t.deploy_txid, 16)}</a> ${copyBtn(t.deploy_txid)}</div></div>` : ''}
         ${t.description ? `<div class="detail-row"><div class="detail-label">Description</div><div class="detail-value">${escHTML(t.description)}</div></div>` : ''}
         ${t.author ? `<div class="detail-row"><div class="detail-label">Author</div><div class="detail-value">${escHTML(t.author)}</div></div>` : ''}
-    </div>`;
+        ${t.remote && t.remote.url ? `<div class="detail-row"><div class="detail-label">Image URL</div><div class="detail-value"><a href="${escHTML(t.remote.url)}" target="_blank" rel="noopener noreferrer" style="font-size:0.82rem;word-break:break-all">${escHTML(t.remote.url)}</a></div></div>` : ''}
+        ${t.remote && t.remote.type ? `<div class="detail-row"><div class="detail-label">Content Type</div><div class="detail-value">${escHTML(t.remote.type)}</div></div>` : ''}
+        ${t.embed && t.embed.type ? `<div class="detail-row"><div class="detail-label">Embedded</div><div class="detail-value">${escHTML(t.embed.type)}${t.embed.size ? ` &mdash; ${(t.embed.size/1024).toFixed(1)} KB` : ''}</div></div>` : ''}
+    </div></div></div>
+    ${hashstampHtml(t)}`;
 
     let supplyHTML = '';
     const sd = sup && !sup.detail ? sup : t;
@@ -1265,10 +1325,14 @@ async function renderSearch(query) {
                 const rawRef = t.ref || t.glyph_id || '';
                 const navRef = refTo72Hex(rawRef);
                 const typeId = resolveTypeId(t);
+                const srHasImg = (t.remote && t.remote.url) || (t.remote && t.remote.hashstamp) || (t.embed && t.embed.data);
                 sections += `<div class="token-card" onclick="navigate('/token/${navRef}')">
-                    <div class="top"><span class="name">${escHTML(t.name || 'Unnamed')}</span>${typeBadge(typeId)}</div>
-                    ${t.ticker ? `<span class="ticker">${escHTML(t.ticker)}</span>` : ''}
-                    <div class="ref">${refToDisplay(rawRef)}</div>
+                    ${srHasImg ? `<div class="token-img-wrap">${tokenImageHtml(t)}</div>` : ''}
+                    <div class="card-body">
+                        <div class="top"><span class="name">${escHTML(t.name || 'Unnamed')}</span>${typeBadge(typeId)}</div>
+                        ${t.ticker ? `<span class="ticker">${escHTML(t.ticker)}</span>` : ''}
+                        <div class="ref">${refToDisplay(rawRef)}</div>
+                    </div>
                 </div>`;
             }
             sections += '</div></div>';
