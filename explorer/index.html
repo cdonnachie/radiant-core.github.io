@@ -307,6 +307,7 @@
             <li><a href="#/" data-nav="dashboard">Dashboard</a></li>
             <li><a href="#/blocks" data-nav="blocks">Blocks</a></li>
             <li><a href="#/tokens" data-nav="tokens">Tokens</a></li>
+            <li><a href="#/analytics" data-nav="analytics">Analytics</a></li>
             <li><a href="#/dmint" data-nav="dmint">dMint</a></li>
             <li><a href="#/mempool" data-nav="mempool">Mempool</a></li>
             <li><a href="#/wave" data-nav="wave">WAVE</a></li>
@@ -334,7 +335,7 @@
 
 <script>
 // ─── CONFIG ───
-const DEFAULT_API = 'http://localhost:8000';
+const DEFAULT_API = 'https://radiantcore.org/api';
 let API_BASE = localStorage.getItem('rxd_explorer_api') || DEFAULT_API;
 const app = document.getElementById('app');
 
@@ -348,9 +349,14 @@ async function api(path) {
 const API = {
     health: () => api('/health'),
     status: () => api('/status'),
+    analyticsStats: () => api('/analytics/stats'),
+    balanceDistribution: () => api('/analytics/balance-distribution'),
+    supplyAging: () => api('/analytics/supply-aging'),
+    topAddresses: (limit = 100, offset = 0) => api(`/analytics/top-addresses?limit=${limit}&offset=${offset}`),
+    movement: (days = 30) => api(`/analytics/movement?days=${days}`),
     recentBlocks: (n = 10) => api(`/blocks/recent?limit=${n}`),
     block: (h) => api(`/block/${h}`),
-    tx: (id) => api(`/transaction/${id}`),
+    tx: (id) => api(`/tx/${id}`),
     glyphs: (limit = 50, offset = 0, type = null) => api(`/glyphs?limit=${limit}&offset=${offset}${type !== null ? `&token_type=${type}` : ''}`),
     glyphSearch: (q, limit = 50) => api(`/glyphs/search?q=${encodeURIComponent(q)}&limit=${limit}`),
     glyphStats: () => api('/glyphs/stats'),
@@ -393,6 +399,7 @@ async function fetchCoinGecko() {
 function truncHash(h, n = 8) { if (!h) return '—'; return h.length > n * 2 + 3 ? h.slice(0, n) + '...' + h.slice(-n) : h; }
 function fmtNum(n) { if (n == null) return '—'; return Number(n).toLocaleString(); }
 function fmtRXD(photons) { if (photons == null) return '—'; return (photons / 1e8).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 8 }) + ' RXD'; }
+function fmtCoinAmount(sats) { if (sats == null) return '—'; return fmtRXD(Number(sats)); }
 function timeAgo(ts) {
     if (!ts) return '—';
     const s = Math.floor(Date.now() / 1000 - ts);
@@ -528,6 +535,7 @@ async function route() {
             case 'block': await renderBlockDetail(r.param); break;
             case 'tx': await renderTxDetail(r.param); break;
             case 'tokens': await renderTokens(); break;
+            case 'analytics': await renderAnalytics(); break;
             case 'token': await renderTokenDetail(r.param); break;
             case 'dmint': await renderDmint(); break;
             case 'mempool': await renderMempool(); break;
@@ -553,9 +561,12 @@ async function renderDashboard() {
     app.innerHTML = loading();
     const results = await Promise.allSettled([
         API.status(), API.recentBlocks(10), API.glyphStats(), API.v2Status(),
-        API.dmintStats(), fetchCoinGecko(), API.mempoolStats()
+        API.dmintStats(), fetchCoinGecko(), API.mempoolStats(),
+        API.analyticsStats(), API.balanceDistribution(), API.supplyAging(),
+        API.topAddresses(10, 0), API.movement(7)
     ]);
-    const [statusR, blocksR, glyphR, v2R, dmintR, cgR, mpR] = results.map(r => r.status === 'fulfilled' ? r.value : null);
+    const [statusR, blocksR, glyphR, v2R, dmintR, cgR, mpR, analyticsStatsR, balanceDistR, supplyAgingR, topAddressesR, movementR] =
+        results.map(r => r.status === 'fulfilled' ? r.value : null);
 
     const height = statusR?.sync_height || blocksR?.current_height || 0;
     const latestBlock = blocksR?.blocks?.[0];
@@ -716,6 +727,47 @@ async function renderDashboard() {
         tokenStatsHTML += '</div></div>';
     }
 
+    let analyticsHTML = '';
+    if (analyticsStatsR || balanceDistR || supplyAgingR || topAddressesR || movementR) {
+        const topRows = topAddressesR?.rows || [];
+        const balanceRows = Object.entries(balanceDistR || {}).sort((a, b) => b[1] - a[1]).slice(0, 6);
+        const ageRows = Object.entries(supplyAgingR || {}).sort((a, b) => b[1] - a[1]).slice(0, 6);
+        const moveSeries = movementR?.series || [];
+        const latestMove = moveSeries[moveSeries.length - 1] || null;
+
+        analyticsHTML = '<div class="section-title"><span class="sec-icon">&#x1f4ca;</span> Chain Analytics <a href="#/analytics" class="btn btn-secondary btn-sm" style="margin-left:auto">View Full Analytics</a></div>';
+        analyticsHTML += '<div class="stats-row">';
+        analyticsHTML += statCard('Indexed Addresses', fmtNum(analyticsStatsR?.rich_list_entries ?? topAddressesR?.total ?? 0), 'accent');
+        analyticsHTML += statCard('Analytics Height', fmtNum(analyticsStatsR?.last_processed_height), 'green');
+        analyticsHTML += statCard('24h Active', fmtNum(latestMove?.active_addresses ?? 0), 'purple');
+        analyticsHTML += statCard('24h New', fmtNum(latestMove?.new_addresses ?? 0), 'orange');
+        analyticsHTML += '</div>';
+
+        analyticsHTML += '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:24px;margin-bottom:24px">';
+
+        analyticsHTML += '<div class="table-wrap"><div class="table-header"><h3>Balance Distribution</h3></div><table><thead><tr><th>Bucket</th><th class="right">Addresses</th></tr></thead><tbody>';
+        for (const [bucket, count] of balanceRows) {
+            analyticsHTML += `<tr><td>${escHTML(bucket)}</td><td class="right">${fmtNum(count)}</td></tr>`;
+        }
+        analyticsHTML += '</tbody></table></div>';
+
+        analyticsHTML += '<div class="table-wrap"><div class="table-header"><h3>Supply Aging</h3></div><table><thead><tr><th>Age</th><th class="right">Supply</th></tr></thead><tbody>';
+        for (const [bucket, amount] of ageRows) {
+            analyticsHTML += `<tr><td>${escHTML(bucket)}</td><td class="right">${fmtCoinAmount(amount)}</td></tr>`;
+        }
+        analyticsHTML += '</tbody></table></div>';
+
+        analyticsHTML += '</div>';
+
+        if (topRows.length) {
+            analyticsHTML += '<div class="table-wrap"><div class="table-header"><h3>Top Addresses</h3><a href="#/analytics" class="btn btn-secondary btn-sm">Top 100</a></div><table><thead><tr><th>#</th><th>Address</th><th class="right">Balance</th></tr></thead><tbody>';
+            topRows.forEach((row, i) => {
+                analyticsHTML += `<tr><td>${i + 1}</td><td class="hash-cell" title="${escHTML(row.address || row.hashX || '')}">${escHTML(truncHash(row.address || row.hashX || '—', 14))}</td><td class="right">${fmtCoinAmount(row.balance)}</td></tr>`;
+            });
+            analyticsHTML += '</tbody></table></div>';
+        }
+    }
+
     // ── Config Banner ──
     let configHTML = '';
     if (!statusR) {
@@ -729,7 +781,68 @@ async function renderDashboard() {
         </div>`;
     }
 
-    app.innerHTML = `<h1 class="page-title">Radiant Explorer</h1>${configHTML}${marketHTML}${netHTML}${halvingHTML}${mpHTML}${blocksHTML}${tokenStatsHTML}${tickerHTML}`;
+    app.innerHTML = `<h1 class="page-title">Radiant Explorer</h1>${configHTML}${marketHTML}${netHTML}${halvingHTML}${analyticsHTML}${mpHTML}${blocksHTML}${tokenStatsHTML}${tickerHTML}`;
+}
+
+async function renderAnalytics() {
+    app.innerHTML = loading();
+    const results = await Promise.allSettled([
+        API.analyticsStats(),
+        API.balanceDistribution(),
+        API.supplyAging(),
+        API.topAddresses(100, 0),
+        API.movement(30),
+    ]);
+    const [statsR, balanceR, agingR, topR, movementR] = results.map(r => r.status === 'fulfilled' ? r.value : null);
+
+    if (!statsR && !balanceR && !agingR && !topR && !movementR) {
+        app.innerHTML = `<h1 class="page-title">Chain Analytics</h1>${emptyState('&#x1f4ca;', 'Analytics data is not available. Ensure analytics indexing is enabled in RXinDexer.')}`;
+        return;
+    }
+
+    const balanceRows = Object.entries(balanceR || {}).sort((a, b) => b[1] - a[1]);
+    const agingRows = Object.entries(agingR || {}).sort((a, b) => b[1] - a[1]);
+    const topRows = topR?.rows || [];
+    const movementRows = (movementR?.series || []).slice().reverse();
+
+    let overviewHTML = '<div class="stats-row">';
+    overviewHTML += statCard('Analytics Height', fmtNum(statsR?.last_processed_height), 'accent');
+    overviewHTML += statCard('Rich List Entries', fmtNum(statsR?.rich_list_entries ?? topR?.total ?? 0), 'green');
+    overviewHTML += statCard('30d Days Indexed', fmtNum(movementRows.length), 'purple');
+    overviewHTML += statCard('Status', statsR?.enabled ? 'Enabled' : 'Unavailable', statsR?.enabled ? 'green' : 'orange');
+    overviewHTML += '</div>';
+
+    let distHTML = '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:24px;margin-bottom:24px">';
+    distHTML += '<div class="table-wrap"><div class="table-header"><h3>Balance Distribution</h3></div><table><thead><tr><th>Bucket</th><th class="right">Addresses</th></tr></thead><tbody>';
+    for (const [bucket, count] of balanceRows) {
+        distHTML += `<tr><td>${escHTML(bucket)}</td><td class="right">${fmtNum(count)}</td></tr>`;
+    }
+    distHTML += '</tbody></table></div>';
+
+    distHTML += '<div class="table-wrap"><div class="table-header"><h3>Supply Aging</h3></div><table><thead><tr><th>Bucket</th><th class="right">Supply</th></tr></thead><tbody>';
+    for (const [bucket, amount] of agingRows) {
+        distHTML += `<tr><td>${escHTML(bucket)}</td><td class="right">${fmtCoinAmount(amount)}</td></tr>`;
+    }
+    distHTML += '</tbody></table></div>';
+    distHTML += '</div>';
+
+    let topHTML = '<div class="table-wrap"><div class="table-header"><h3>Top 100 Addresses</h3></div><table><thead><tr><th>#</th><th>Address</th><th class="right">Balance</th></tr></thead><tbody>';
+    topRows.forEach((row, i) => {
+        const addr = row.address || row.hashX || '—';
+        topHTML += `<tr><td>${i + 1}</td><td class="hash-cell" title="${escHTML(addr)}">${escHTML(addr)}</td><td class="right">${fmtCoinAmount(row.balance)}</td></tr>`;
+    });
+    topHTML += '</tbody></table></div>';
+
+    let movementHTML = '<div class="table-wrap"><div class="table-header"><h3>Daily Movement</h3></div><table><thead><tr><th>Day</th><th class="right">Coins Moved</th><th class="right">Active</th><th class="right">New</th></tr></thead><tbody>';
+    movementRows.forEach((row) => {
+        movementHTML += `<tr><td>${fmtNum(row.day)}</td><td class="right">${fmtCoinAmount(row.coins_moved)}</td><td class="right">${fmtNum(row.active_addresses)}</td><td class="right">${fmtNum(row.new_addresses)}</td></tr>`;
+    });
+    movementHTML += '</tbody></table></div>';
+
+    app.innerHTML = `
+        <div class="breadcrumb"><a href="#/">Home</a> / Analytics</div>
+        <h1 class="page-title">Chain Analytics <span class="subtitle">Confirmed balances and UTXO age</span></h1>
+        ${overviewHTML}${distHTML}${topHTML}${movementHTML}`;
 }
 
 function statCard(label, value, color = 'accent', note = '') {
