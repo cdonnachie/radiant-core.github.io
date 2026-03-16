@@ -354,11 +354,15 @@ if (API_BASE !== localStorage.getItem('rxd_explorer_api')) {
 const app = document.getElementById('app');
 
 // ─── API CLIENT ───
-async function api(path) {
+async function api(path, timeoutMs = 10000) {
     const url = API_BASE + path;
-    const res = await fetch(url);
-    if (!res.ok) throw new Error(`HTTP ${res.status}: ${res.statusText}`);
-    return res.json();
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), timeoutMs);
+    try {
+        const res = await fetch(url, { signal: ctrl.signal });
+        if (!res.ok) throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+        return res.json();
+    } finally { clearTimeout(timer); }
 }
 const API = {
     health: () => api('/health'),
@@ -573,14 +577,15 @@ function updateNav(view) {
 // ─── DASHBOARD ───
 async function renderDashboard() {
     app.innerHTML = loading();
-    const results = await Promise.allSettled([
+    // Phase 1: fast endpoints only (< 1s each)
+    const fastResults = await Promise.allSettled([
         API.status(), API.recentBlocks(10), API.glyphStats(), API.v2Status(),
-        API.dmintStats(), fetchCoinGecko(), API.mempoolStats(),
-        API.analyticsStats(), API.balanceDistribution(), API.supplyAging(),
-        API.topAddresses(10, 0), API.movement(7)
+        API.dmintStats(), fetchCoinGecko(), API.mempoolStats()
     ]);
-    const [statusR, blocksR, glyphR, v2R, dmintR, cgR, mpR, analyticsStatsR, balanceDistR, supplyAgingR, topAddressesR, movementR] =
-        results.map(r => r.status === 'fulfilled' ? r.value : null);
+    const [statusR, blocksR, glyphR, v2R, dmintR, cgR, mpR] =
+        fastResults.map(r => r.status === 'fulfilled' ? r.value : null);
+    // Phase 2: slow analytics endpoints fire in background
+    let analyticsStatsR = null, balanceDistR = null, supplyAgingR = null, topAddressesR = null, movementR = null;
 
     const height = statusR?.sync_height || blocksR?.current_height || 0;
     const latestBlock = blocksR?.blocks?.[0];
@@ -741,48 +746,8 @@ async function renderDashboard() {
         tokenStatsHTML += '</div></div>';
     }
 
-    let analyticsHTML = '';
-    if (analyticsStatsR || balanceDistR || supplyAgingR || topAddressesR || movementR) {
-        const topRows = topAddressesR?.rows || [];
-        const balanceOrder = ['<0.01', '0.01-1', '1-10', '10-100', '100-1k', '1k-10k', '10k-100k', '100k-1M', '1M-10M', '10M-100M', '100M-1B', '1B+'];
-        const balanceRows = balanceOrder.map(b => [b, balanceDistR?.[b] || 0]).filter(([_, c]) => c > 0).slice(0, 6);
-        const ageOrder = ['<1d', '1d-1w', '1w-1m', '1m-3m', '3m-6m', '6m-1y', '1y-2y', '2y-3y', '3y+'];
-        const ageRows = ageOrder.map(a => [a, supplyAgingR?.[a] || 0]).filter(([_, amt]) => amt > 0).slice(0, 6);
-        const moveSeries = movementR?.series || [];
-        const latestMove = moveSeries[moveSeries.length - 1] || null;
-
-        analyticsHTML = '<div class="section-title"><span class="sec-icon">&#x1f4ca;</span> Chain Analytics <a href="#/analytics" class="btn btn-secondary btn-sm" style="margin-left:auto">View Full Analytics</a></div>';
-        analyticsHTML += '<div class="stats-row">';
-        analyticsHTML += statCard('Indexed Addresses', fmtNum(analyticsStatsR?.rich_list_entries ?? topAddressesR?.total ?? 0), 'accent');
-        analyticsHTML += statCard('Analytics Height', fmtNum(analyticsStatsR?.last_processed_height), 'green');
-        analyticsHTML += statCard('24h Active', fmtNum(latestMove?.active_addresses ?? 0), 'purple');
-        analyticsHTML += statCard('24h New', fmtNum(latestMove?.new_addresses ?? 0), 'orange');
-        analyticsHTML += '</div>';
-
-        analyticsHTML += '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:24px;margin-bottom:24px">';
-
-        analyticsHTML += '<div class="table-wrap"><div class="table-header"><h3>Balance Distribution</h3></div><table><thead><tr><th>Bucket</th><th class="right">Addresses</th></tr></thead><tbody>';
-        for (const [bucket, count] of balanceRows) {
-            analyticsHTML += `<tr><td>${escHTML(bucket)}</td><td class="right">${fmtNum(count)}</td></tr>`;
-        }
-        analyticsHTML += '</tbody></table></div>';
-
-        analyticsHTML += '<div class="table-wrap"><div class="table-header"><h3>Supply Aging</h3></div><table><thead><tr><th>Age</th><th class="right">Supply</th></tr></thead><tbody>';
-        for (const [bucket, amount] of ageRows) {
-            analyticsHTML += `<tr><td>${escHTML(bucket)}</td><td class="right">${fmtCoinAmount(amount)}</td></tr>`;
-        }
-        analyticsHTML += '</tbody></table></div>';
-
-        analyticsHTML += '</div>';
-
-        if (topRows.length) {
-            analyticsHTML += '<div class="table-wrap"><div class="table-header"><h3>Top Addresses</h3><a href="#/analytics" class="btn btn-secondary btn-sm">Top 100</a></div><table><thead><tr><th>#</th><th>Address</th><th class="right">Balance</th></tr></thead><tbody>';
-            topRows.forEach((row, i) => {
-                analyticsHTML += `<tr><td>${i + 1}</td><td class="hash-cell" title="${escHTML(row.address || row.hashX || '')}">${escHTML(truncHash(row.address || row.hashX || '—', 14))}</td><td class="right">${fmtCoinAmount(row.balance)}</td></tr>`;
-            });
-            analyticsHTML += '</tbody></table></div>';
-        }
-    }
+    const analyticsHTML = '<div id="dash-analytics"><div style="text-align:center;padding:24px;color:var(--text-muted)">Loading analytics...</div></div>';
+    /* analytics section filled async after initial render */
 
     // ── Config Banner ──
     let configHTML = '';
@@ -798,7 +763,48 @@ async function renderDashboard() {
     }
 
     app.innerHTML = `<h1 class="page-title">Radiant Explorer</h1>${configHTML}${marketHTML}${netHTML}${halvingHTML}${analyticsHTML}${mpHTML}${blocksHTML}${tokenStatsHTML}${tickerHTML}`;
+    _fillDashAnalytics();
 }
+
+async function _fillDashAnalytics() {
+    const el = document.getElementById('dash-analytics');
+    if (!el) return;
+    try {
+        const r = await Promise.allSettled([
+            API.analyticsStats(), API.balanceDistribution(), API.supplyAging(),
+            API.topAddresses(10, 0), API.movement(7)
+        ]);
+        const [aS,aB,aA,aT,aM] = r.map(x => x.status==='fulfilled'?x.value:null);
+        if (!aS&&!aB&&!aA&&!aT&&!aM) { el.innerHTML=''; return; }
+        const bO=['<0.01','0.01-1','1-10','10-100','100-1k','1k-10k','10k-100k','100k-1M','1M-10M','10M-100M','100M-1B','1B+'];
+        const bR=bO.map(b=>[b,aB?.[b]||0]).filter(([_,c])=>c>0).slice(0,6);
+        const aO=['<1d','1d-1w','1w-1m','1m-3m','3m-6m','6m-1y','1y-2y','2y-3y','3y+'];
+        const aR=aO.map(a=>[a,aA?.[a]||0]).filter(([_,v])=>v>0).slice(0,6);
+        const ms=aM?.series||[]; const lm=ms[ms.length-1]||null;
+        let h='<div class="section-title"><span class="sec-icon">&#x1f4ca;</span> Chain Analytics <a href="#/analytics" class="btn btn-secondary btn-sm" style="margin-left:auto">View Full Analytics</a></div>';
+        h+='<div class="stats-row">';
+        h+=statCard('Indexed Addresses',fmtNum(aS?.rich_list_entries??aT?.total??0),'accent');
+        h+=statCard('Analytics Height',fmtNum(aS?.last_processed_height),'green');
+        h+=statCard('24h Active',fmtNum(lm?.active_addresses??0),'purple');
+        h+=statCard('24h New',fmtNum(lm?.new_addresses??0),'orange');
+        h+='</div>';
+        h+='<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:24px;margin-bottom:24px">';
+        h+='<div class="table-wrap"><div class="table-header"><h3>Balance Distribution</h3></div><table><thead><tr><th>Bucket</th><th class="right">Addresses</th></tr></thead><tbody>';
+        for(const [b,c] of bR) h+=`<tr><td>${escHTML(b)}</td><td class="right">${fmtNum(c)}</td></tr>`;
+        h+='</tbody></table></div>';
+        h+='<div class="table-wrap"><div class="table-header"><h3>Supply Aging</h3></div><table><thead><tr><th>Age</th><th class="right">Supply</th></tr></thead><tbody>';
+        for(const [b,a] of aR) h+=`<tr><td>${escHTML(b)}</td><td class="right">${fmtCoinAmount(a)}</td></tr>`;
+        h+='</tbody></table></div></div>';
+        const tR=aT?.rows||[];
+        if(tR.length){
+            h+='<div class="table-wrap"><div class="table-header"><h3>Top Addresses</h3><a href="#/analytics" class="btn btn-secondary btn-sm">Top 100</a></div><table><thead><tr><th>#</th><th>Address</th><th class="right">Balance</th></tr></thead><tbody>';
+            tR.forEach((row,i)=>{h+=`<tr><td>${i+1}</td><td class="hash-cell" title="${escHTML(row.address||row.hashX||'')}">${escHTML(truncHash(row.address||row.hashX||'—',14))}</td><td class="right">${fmtCoinAmount(row.balance)}</td></tr>`;});
+            h+='</tbody></table></div>';
+        }
+        el.innerHTML=h;
+    } catch(e) { console.error('Analytics load error:',e); el.innerHTML=''; }
+}
+
 
 async function renderAnalytics() {
     app.innerHTML = loading();
