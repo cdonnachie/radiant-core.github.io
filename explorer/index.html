@@ -744,8 +744,10 @@ async function renderDashboard() {
     let analyticsHTML = '';
     if (analyticsStatsR || balanceDistR || supplyAgingR || topAddressesR || movementR) {
         const topRows = topAddressesR?.rows || [];
-        const balanceRows = Object.entries(balanceDistR || {}).sort((a, b) => b[1] - a[1]).slice(0, 6);
-        const ageRows = Object.entries(supplyAgingR || {}).sort((a, b) => b[1] - a[1]).slice(0, 6);
+        const balanceOrder = ['<0.01', '0.01-1', '1-10', '10-100', '100-1k', '1k-10k', '10k-100k', '100k-1M', '1M-10M', '10M-100M', '100M-1B', '1B+'];
+        const balanceRows = balanceOrder.map(b => [b, balanceDistR?.[b] || 0]).filter(([_, c]) => c > 0).slice(0, 6);
+        const ageOrder = ['<1d', '1d-1w', '1w-1m', '1m-3m', '3m-6m', '6m-1y', '1y-2y', '2y-3y', '3y+'];
+        const ageRows = ageOrder.map(a => [a, supplyAgingR?.[a] || 0]).filter(([_, amt]) => amt > 0).slice(0, 6);
         const moveSeries = movementR?.series || [];
         const latestMove = moveSeries[moveSeries.length - 1] || null;
 
@@ -814,8 +816,10 @@ async function renderAnalytics() {
         return;
     }
 
-    const balanceRows = Object.entries(balanceR || {}).sort((a, b) => b[1] - a[1]);
-    const agingRows = Object.entries(agingR || {}).sort((a, b) => b[1] - a[1]);
+    const balanceOrder = ['<0.01', '0.01-1', '1-10', '10-100', '100-1k', '1k-10k', '10k-100k', '100k-1M', '1M-10M', '10M-100M', '100M-1B', '1B+'];
+    const balanceRows = balanceOrder.map(b => [b, balanceR?.[b] || 0]).filter(([_, c]) => c > 0);
+    const ageOrder = ['<1d', '1d-1w', '1w-1m', '1m-3m', '3m-6m', '6m-1y', '1y-2y', '2y-3y', '3y+'];
+    const agingRows = ageOrder.map(a => [a, agingR?.[a] || 0]).filter(([_, amt]) => amt > 0);
     const topRows = topR?.rows || [];
     const movementRows = (movementR?.series || []).slice().reverse();
 
