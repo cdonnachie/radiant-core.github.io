@@ -337,6 +337,20 @@
 // ─── CONFIG ───
 const DEFAULT_API = 'https://radiantcore.org/api';
 let API_BASE = localStorage.getItem('rxd_explorer_api') || DEFAULT_API;
+
+// Clean up invalid cached API URLs
+if (API_BASE.endsWith('/health')) {
+    API_BASE = API_BASE.replace(/\/health$/, '');
+}
+// Force HTTPS for radiantcore.org domain
+if (API_BASE.includes('radiantcore.org') && API_BASE.startsWith('http://')) {
+    API_BASE = API_BASE.replace('http://', 'https://');
+}
+// Update localStorage with cleaned URL
+if (API_BASE !== localStorage.getItem('rxd_explorer_api')) {
+    localStorage.setItem('rxd_explorer_api', API_BASE);
+}
+
 const app = document.getElementById('app');
 
 // ─── API CLIENT ───
