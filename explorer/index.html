@@ -776,7 +776,7 @@ async function _fillDashAnalytics() {
         ]);
         const [aS,aB,aA,aT,aM] = r.map(x => x.status==='fulfilled'?x.value:null);
         if (!aS&&!aB&&!aA&&!aT&&!aM) { el.innerHTML=''; return; }
-        const bO=['<0.01','0.01-1','1-10','10-100','100-1k','1k-10k','10k-100k','100k-1M','1M-10M','10M-100M','100M-1B','1B+'];
+        const bO=['<0.01','0.01-1','1-10','10-100','100-1k','1k-10k','10k-100k','100k-1M','1M+','1M-10M','10M-100M','100M-1B','1B+'];
         const bR=bO.map(b=>[b,aB?.[b]||0]).filter(([_,c])=>c>0).slice(0,6);
         const aO=['<1d','1d-1w','1w-1m','1m-3m','3m-6m','6m-1y','1y-2y','2y-3y','3y+'];
         const aR=aO.map(a=>[a,aA?.[a]||0]).filter(([_,v])=>v>0).slice(0,6);
@@ -822,7 +822,7 @@ async function renderAnalytics() {
         return;
     }
 
-    const balanceOrder = ['<0.01', '0.01-1', '1-10', '10-100', '100-1k', '1k-10k', '10k-100k', '100k-1M', '1M-10M', '10M-100M', '100M-1B', '1B+'];
+    const balanceOrder = ['<0.01', '0.01-1', '1-10', '10-100', '100-1k', '1k-10k', '10k-100k', '100k-1M', '1M+', '1M-10M', '10M-100M', '100M-1B', '1B+'];
     const balanceRows = balanceOrder.map(b => [b, balanceR?.[b] || 0]).filter(([_, c]) => c > 0);
     const ageOrder = ['<1d', '1d-1w', '1w-1m', '1m-3m', '3m-6m', '6m-1y', '1y-2y', '2y-3y', '3y+'];
     const agingRows = ageOrder.map(a => [a, agingR?.[a] || 0]).filter(([_, amt]) => amt > 0);
