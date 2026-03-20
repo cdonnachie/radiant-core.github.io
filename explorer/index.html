@@ -820,8 +820,8 @@ async function renderAnalytics() {
         return pct.toFixed(2) + '%';
     }
 
-    // Estimate total photons held per balance bucket using bucket midpoint * address count
-    // This is approximate since we only have address counts, not sum of balances per bucket
+    // Sort order and midpoints for all known balance buckets (including legacy '1M+')
+    const bucketSortOrder = {'<0.01':0, '0.01-1':1, '1-10':2, '10-100':3, '100-1k':4, '1k-10k':5, '10k-100k':6, '100k-1M':7, '1M+':8, '1M-10M':8, '10M-100M':9, '100M-1B':10, '1B+':11};
     const bucketMidpointsRXD = {
         '<0.01': 0.005, '0.01-1': 0.5, '1-10': 5, '10-100': 50,
         '100-1k': 500, '1k-10k': 5000, '10k-100k': 50000,
@@ -829,8 +829,8 @@ async function renderAnalytics() {
         '10M-100M': 50000000, '100M-1B': 500000000, '1B+': 5000000000
     };
 
-    const balanceOrder = ['<0.01', '0.01-1', '1-10', '10-100', '100-1k', '1k-10k', '10k-100k', '100k-1M', '1M-10M', '10M-100M', '100M-1B', '1B+'];
-    const balanceRows = balanceOrder.map(b => [b, balanceR?.[b] || 0]).filter(([_, c]) => c > 0);
+    // Dynamically collect all non-zero buckets from API response, sorted by threshold
+    const balanceRows = balanceR ? Object.entries(balanceR).filter(([_, c]) => c > 0).sort((a, b) => (bucketSortOrder[a[0]] ?? 99) - (bucketSortOrder[b[0]] ?? 99)) : [];
     const ageOrder = ['<1d', '1d-1w', '1w-1m', '1m-3m', '3m-6m', '6m-1y', '1y-2y', '2y-3y', '3y+'];
     const agingRows = ageOrder.map(a => [a, agingR?.[a] || 0]).filter(([_, amt]) => amt > 0);
     const topRows = topR?.rows || [];
