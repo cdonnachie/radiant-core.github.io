@@ -84,6 +84,10 @@
             font-weight: 600 !important;
         }
         .nav-cta:hover { background: var(--accent) !important; }
+        .nav-explorer { color: var(--green); font-weight: 600; }
+        .opcode-card-link { text-decoration: none; }
+        .docs-more { text-align: center; margin-top: 24px; }
+        .docs-more a { font-weight: 600; }
 
         .hamburger { display: none; background: none; border: none; color: var(--text); font-size: 1.5rem; cursor: pointer; }
 
@@ -550,7 +554,7 @@
             <li><a href="docs/">Docs</a></li>
             <li><a href="#get-started">Get Started</a></li>
             <li><a href="#links">Links</a></li>
-            <li><a href="explorer/" style="color:var(--green);font-weight:600;">Explorer</a></li>
+            <li><a href="explorer/" class="nav-explorer">Explorer</a></li>
             <li><a href="https://github.com/Radiant-Core" class="nav-cta">GitHub ↗</a></li>
         </ul>
     </div>
@@ -996,38 +1000,38 @@
             <p>Comprehensive guides for developers, miners, token creators, and users.</p>
         </div>
         <div class="opcode-grid">
-            <a href="docs/ecosystem-introduction.html" class="opcode-card" style="text-decoration:none;">
+            <a href="docs/ecosystem-introduction.html" class="opcode-card opcode-card-link">
                 <code>Overview</code>
                 <h4>Ecosystem Introduction</h4>
                 <p>What is Radiant, core components, Glyph tokens, and getting started paths for users, miners, and developers.</p>
             </a>
-            <a href="docs/developer-guide.html" class="opcode-card" style="text-decoration:none;">
+            <a href="docs/developer-guide.html" class="opcode-card opcode-card-link">
                 <code>Developer</code>
                 <h4>Developer Guide</h4>
                 <p>radiantjs SDK, transactions, Glyph tokens, RadiantScript contracts, ElectrumX, node RPC, and V2 opcodes.</p>
             </a>
-            <a href="docs/mining-guide.html" class="opcode-card" style="text-decoration:none;">
+            <a href="docs/mining-guide.html" class="opcode-card opcode-card-link">
                 <code>Mining</code>
                 <h4>Mining Guide</h4>
                 <p>GPU/ASIC setup, pool configuration, solo mining, dMint token mining, profitability, and troubleshooting.</p>
             </a>
-            <a href="docs/contract-best-practices.html" class="opcode-card" style="text-decoration:none;">
+            <a href="docs/contract-best-practices.html" class="opcode-card opcode-card-link">
                 <code>Security</code>
                 <h4>Contract Best Practices</h4>
                 <p>Security patterns, token templates, testing strategies, common vulnerabilities, and auditing checklists.</p>
             </a>
-            <a href="docs/token-creation.html" class="opcode-card" style="text-decoration:none;">
+            <a href="docs/token-creation.html" class="opcode-card opcode-card-link">
                 <code>Tokens</code>
                 <h4>Token Creation Guide</h4>
                 <p>Create NFTs, fungible tokens, and dMint contracts via Photonic Wallet, CLI, radiantjs, or RadiantScript.</p>
             </a>
-            <a href="docs/ai-integration.html" class="opcode-card" style="text-decoration:none;">
+            <a href="docs/ai-integration.html" class="opcode-card opcode-card-link">
                 <code>AI / MCP</code>
                 <h4>AI Integration Strategy</h4>
                 <p>56 MCP tools, REST API, Agent SDK with BIP39 wallets, AI-native smart contracts, and test coverage.</p>
             </a>
         </div>
-        <p style="text-align:center; margin-top:24px;"><a href="docs/" style="font-weight:600;">View All Documentation →</a></p>
+        <p class="docs-more"><a href="docs/">View All Documentation →</a></p>
     </div>
 </section>
 
