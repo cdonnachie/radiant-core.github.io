@@ -19,7 +19,7 @@
         <button class="hamburger" onclick="document.querySelector('.nav-links').classList.toggle('open')" aria-label="Menu">&#9776;</button>
         <ul class="nav-links">
             <li><a href="../#features">Features</a></li>
-            <li><a href="../#v2-upgrade">V2 Upgrade</a></li>
+            <li><a href="../#opcodes">Opcodes</a></li>
             <li><a href="./" class="nav-active">Docs</a></li>
             <li><a href="../#ecosystem">Ecosystem</a></li>
             <li><a href="../#mining">Mining</a></li>
@@ -85,8 +85,8 @@
 <li><strong>Transaction Introspection</strong>: Scripts can inspect their own transaction</li>
 <li><strong>Reference Opcodes</strong>: Track and validate token authenticity</li>
 <li><strong>State Separators</strong>: Enable stateful contracts</li>
-<li><strong>V2 Hash Opcodes</strong> (Block 410,000+): OP_BLAKE3 and OP_K12 for on-chain proof-of-work validation</li>
-<li><strong>Bitwise Shifts</strong> (Block 410,000+): OP_LSHIFT and OP_RSHIFT for on-chain difficulty adjustment</li>
+<li><strong>Native Hash Opcodes</strong>: OP_BLAKE3 and OP_K12 for on-chain proof-of-work validation</li>
+<li><strong>Bitwise Shifts</strong>: OP_LSHIFT and OP_RSHIFT for on-chain difficulty adjustment</li>
 <li><strong>Induction Proofs</strong>: O(1) provenance verification via references and TxId v3 preimage</li>
 <li><strong>Transaction State</strong> (<code>OP_PUSH_TX_STATE</code>): Access txid, total input/output values for fee verification and self-referencing contracts</li>
 </ul>
@@ -402,7 +402,7 @@ OP_MOD    # Modulo</code></pre>
 <li>Photonic Wallet release</li>
 <li>ElectrumX with RocksDB support</li>
 <li>RadiantScript compiler</li>
-<li><strong>Radiant Core 2.1.0</strong> (February 2026) — V2 Hard Fork: 6 new/re-enabled opcodes, activation at Block 410,000</li>
+<li><strong>Radiant Core 2.1.0</strong> (February 2026) — Native opcodes: BLAKE3, K12, LSHIFT, RSHIFT, 2MUL, 2DIV for on-chain PoW and DAA</li>
 <li>Glyph v2 token standard (whitepaper draft-8, Release Candidate)</li>
 <li>Multi-algorithm dMint mining (Blake3, K12 — on-chain PoW validation)</li>
 <li>AI Integration (radiant-mcp-server: 56 MCP tools, REST API, Agent SDK)</li>

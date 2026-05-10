@@ -16,7 +16,7 @@
         <button class="hamburger" onclick="document.querySelector('.nav-links').classList.toggle('open')" aria-label="Menu">&#9776;</button>
         <ul class="nav-links">
             <li><a href="../#features">Features</a></li>
-            <li><a href="../#v2-upgrade">V2 Upgrade</a></li>
+            <li><a href="../#opcodes">Opcodes</a></li>
             <li><a href="./" class="nav-active">Docs</a></li>
             <li><a href="../#ecosystem">Ecosystem</a></li>
             <li><a href="../#mining">Mining</a></li>
@@ -46,7 +46,7 @@
             <li><a href="#rxdeb">7. Debugging with rxdeb</a></li>
             <li><a href="#electrumx">8. ElectrumX Integration</a></li>
             <li><a href="#running-node">9. Running a Node</a></li>
-            <li><a href="#v2-hard-fork">10. V2 Hard Fork (Radiant Core 2.1)</a></li>
+            <li><a href="#native-opcodes">10. Native Opcodes (BLAKE3, K12, Shifts)</a></li>
             <li><a href="#ai-integration">11. AI Integration (MCP Server)</a></li>
             <li><a href="#best-practices">12. Best Practices</a></li>
             <li><a href="#resources">13. Resources</a></li>
@@ -570,12 +570,12 @@ radiant-cli getnetworkinfo          # Network info</code></pre>
 
 <hr>
 
-<h2 id="v2-hard-fork">10. V2 Hard Fork (Radiant Core 2.1)</h2>
+<h2 id="native-opcodes">10. Native Opcodes (BLAKE3, K12, Shifts)</h2>
 
 <h3>Overview</h3>
-<p>Radiant Core 2.1 introduces a hard fork at <strong>block 410,000</strong> (mainnet &amp; testnet3) that activates 6 new and re-enabled opcodes, gated behind the <code>SCRIPT_ENHANCED_REFERENCES</code> flag.</p>
+<p>Radiant provides 6 specialized opcodes for cryptographic hashing and efficient arithmetic. These enable fully trustless on-chain dMint token mining with multiple proof-of-work algorithms, eliminating any external indexer dependency.</p>
 
-<h3>New Opcodes</h3>
+<h3>Native Opcodes</h3>
 <table>
 <thead><tr><th>Opcode</th><th>Hex</th><th>Stack Effect</th><th>Description</th></tr></thead>
 <tbody>
@@ -590,12 +590,12 @@ radiant-cli getnetworkinfo          # Network info</code></pre>
 
 <h3>Why These Opcodes</h3>
 <ul>
-<li><strong>OP_BLAKE3 / OP_K12</strong> — Fully on-chain PoW validation for Glyph v2 dMint tokens, eliminating indexer trust dependency</li>
-<li><strong>OP_LSHIFT / OP_RSHIFT</strong> — On-chain ASERT-lite DAA via bit shifts</li>
+<li><strong>OP_BLAKE3 / OP_K12</strong> — Fully on-chain PoW validation for dMint tokens with multiple algorithms (SHA256d, BLAKE3, K12), eliminating indexer trust dependency</li>
+<li><strong>OP_LSHIFT / OP_RSHIFT</strong> — On-chain ASERT-lite DAA via bit shifts for dynamic difficulty adjustment</li>
 <li><strong>OP_2MUL / OP_2DIV</strong> — Efficient numeric scaling for DAA and contract arithmetic</li>
 </ul>
 
-<h3>Using V2 Opcodes</h3>
+<h3>Using Native Opcodes</h3>
 <pre><code>const { Script, Opcode } = radiant;
 
 // Blake3 hash verification
@@ -612,11 +612,12 @@ const daaScript = new Script()
   .add(Opcode.OP_LSHIFT);        // target &lt;&lt; 2 = 4000</code></pre>
 
 <h3>Activation Heights</h3>
+<p>These opcodes are active on all networks since the Radiant Core 2.1 upgrade:</p>
 <table>
 <thead><tr><th>Network</th><th>Height</th><th>Status</th></tr></thead>
 <tbody>
-<tr><td>Mainnet</td><td>410,000</td><td>Pending</td></tr>
-<tr><td>Testnet3</td><td>410,000</td><td>Pending</td></tr>
+<tr><td>Mainnet</td><td>410,000</td><td>Active</td></tr>
+<tr><td>Testnet3</td><td>410,000</td><td>Active</td></tr>
 <tr><td>Scalenet</td><td>1,000</td><td>Active</td></tr>
 <tr><td>Regtest</td><td>200</td><td>Active</td></tr>
 </tbody>
@@ -629,12 +630,12 @@ const daaScript = new Script()
 <li>Blocks ≥ 415,000: 0.1 RXD/kB (new minimum)</li>
 </ul>
 
-<h3>Ecosystem Compatibility</h3>
+<h3>Ecosystem Support</h3>
 <table>
-<thead><tr><th>Tool</th><th>V2 Support</th></tr></thead>
+<thead><tr><th>Tool</th><th>Support</th></tr></thead>
 <tbody>
 <tr><td>radiantjs</td><td>OP_BLAKE3/K12 (pure JS), OP_LSHIFT/RSHIFT, OP_2MUL/2DIV in interpreter</td></tr>
-<tr><td>radiantblockchain-constants</td><td>V2 opcode values and names</td></tr>
+<tr><td>radiantblockchain-constants</td><td>Opcode values and names</td></tr>
 <tr><td>RadiantScript</td><td><code>blake3()</code>, <code>k12()</code> compiler globals, <code>tx.state.*</code> induction proof operators</td></tr>
 <tr><td>rxdeb</td><td>Full VM execution of all V2 opcodes</td></tr>
 <tr><td>Glyph-miner</td><td>Blake3/K12 GPU shaders for multi-algo mining</td></tr>

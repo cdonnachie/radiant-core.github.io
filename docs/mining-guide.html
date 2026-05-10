@@ -16,7 +16,7 @@
         <button class="hamburger" onclick="document.querySelector('.nav-links').classList.toggle('open')" aria-label="Menu">&#9776;</button>
         <ul class="nav-links">
             <li><a href="../#features">Features</a></li>
-            <li><a href="../#v2-upgrade">V2 Upgrade</a></li>
+            <li><a href="../#opcodes">Opcodes</a></li>
             <li><a href="./" class="nav-active">Docs</a></li>
             <li><a href="../#ecosystem">Ecosystem</a></li>
             <li><a href="../#mining">Mining</a></li>
@@ -275,18 +275,18 @@ Password: x</code></pre>
 <h3>What is dMint?</h3>
 <p>Decentralized Minting (dMint) allows anyone to mine <strong>Glyph fungible tokens</strong> instead of native RXD. Token creators set the mining algorithm, difficulty/DAA mode, total supply, and reward per solve.</p>
 
-<h3>V2 On-Chain PoW Validation (Radiant Core 2.1)</h3>
+<h3>On-Chain PoW Validation</h3>
 <blockquote>
-<p>Starting at <strong>block 410,000</strong>, Glyph v2 dMint contracts validate proof-of-work <strong>entirely on-chain</strong> using new hash opcodes. <code>OP_BLAKE3</code> and <code>OP_K12</code> execute hash functions natively in the script engine. The DAA is computed on-chain using <code>OP_LSHIFT</code>/<code>OP_RSHIFT</code> (ASERT-lite). No indexer trust required. This eliminates griefing attacks where invalid work could consume token state. v1 dMint tokens (SHA256d with fixed difficulty) continue to work unchanged after the fork.</p>
+<p>Glyph dMint contracts validate proof-of-work <strong>entirely on-chain</strong> using native hash opcodes. <code>OP_BLAKE3</code> and <code>OP_K12</code> execute hash functions natively in the script engine. The DAA is computed on-chain using <code>OP_LSHIFT</code>/<code>OP_RSHIFT</code> (ASERT-lite). No indexer trust required. This eliminates griefing attacks where invalid work could consume token state.</p>
 </blockquote>
 
 <h3>Supported Algorithms</h3>
 <table>
 <thead><tr><th>Algorithm</th><th>ID</th><th>Best Hardware</th><th>Status</th></tr></thead>
 <tbody>
-<tr><td><strong>SHA256d</strong></td><td>0x00</td><td>NVIDIA/AMD</td><td>Active (v1)</td></tr>
-<tr><td><strong>Blake3</strong></td><td>0x01</td><td>NVIDIA/AMD</td><td>Post-fork (v2)</td></tr>
-<tr><td><strong>KangarooTwelve</strong></td><td>0x02</td><td>NVIDIA/AMD</td><td>Post-fork (v2)</td></tr>
+<tr><td><strong>SHA256d</strong></td><td>0x00</td><td>NVIDIA/AMD</td><td>Active</td></tr>
+<tr><td><strong>Blake3</strong></td><td>0x01</td><td>NVIDIA/AMD</td><td>Active</td></tr>
+<tr><td><strong>KangarooTwelve</strong></td><td>0x02</td><td>NVIDIA/AMD</td><td>Active</td></tr>
 </tbody>
 </table>
 

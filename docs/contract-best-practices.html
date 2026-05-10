@@ -16,7 +16,7 @@
         <button class="hamburger" onclick="document.querySelector('.nav-links').classList.toggle('open')" aria-label="Menu">&#9776;</button>
         <ul class="nav-links">
             <li><a href="../#features">Features</a></li>
-            <li><a href="../#v2-upgrade">V2 Upgrade</a></li>
+            <li><a href="../#opcodes">Opcodes</a></li>
             <li><a href="./" class="nav-active">Docs</a></li>
             <li><a href="../#ecosystem">Ecosystem</a></li>
             <li><a href="../#mining">Mining</a></li>
@@ -37,7 +37,7 @@
     <div class="doc-content">
 
 <blockquote>
-<p><strong>V2 Hard Fork (Radiant Core 2.1, Block 410,000):</strong> Six new/re-enabled opcodes are available post-fork: OP_BLAKE3 (<code>0xee</code>), OP_K12 (<code>0xef</code>) for on-chain hash verification; OP_LSHIFT (<code>0x98</code>), OP_RSHIFT (<code>0x99</code>) for bitwise shifts; OP_2MUL (<code>0x8d</code>), OP_2DIV (<code>0x8e</code>) for numeric scaling. Use these for on-chain PoW validation (dMint v2) and ASERT-lite DAA computation. Contracts using these opcodes must only be deployed after the activation height.</p>
+<p><strong>Native Hash and Shift Opcodes:</strong> Radiant provides six specialized opcodes: OP_BLAKE3 (<code>0xee</code>), OP_K12 (<code>0xef</code>) for on-chain hash verification; OP_LSHIFT (<code>0x98</code>), OP_RSHIFT (<code>0x99</code>) for bitwise shifts; OP_2MUL (<code>0x8d</code>), OP_2DIV (<code>0x8e</code>) for numeric scaling. Use these for on-chain PoW validation (dMint) and ASERT-lite DAA computation.</p>
 </blockquote>
 
 <hr>

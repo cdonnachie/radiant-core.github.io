@@ -16,7 +16,7 @@
         <button class="hamburger" onclick="document.querySelector('.nav-links').classList.toggle('open')" aria-label="Menu">&#9776;</button>
         <ul class="nav-links">
             <li><a href="../#features">Features</a></li>
-            <li><a href="../#v2-upgrade">V2 Upgrade</a></li>
+            <li><a href="../#opcodes">Opcodes</a></li>
             <li><a href="./" class="nav-active">Docs</a></li>
             <li><a href="../#ecosystem">Ecosystem</a></li>
             <li><a href="../#mining">Mining</a></li>
@@ -53,7 +53,7 @@
     <div class="doc-content">
 
 <blockquote>
-<p><strong>V2 Hard Fork Note (Radiant Core 2.1):</strong> At block 410,000, six new/re-enabled opcodes activate (OP_BLAKE3, OP_K12, OP_LSHIFT, OP_RSHIFT, OP_2MUL, OP_2DIV). dApps using these opcodes must ensure they are only used in transactions broadcast after the activation height. The minimum relay fee increases to 0.1 RXD/kB after block 415,000. Additionally, <code>OP_PUSH_TX_STATE</code> (0xed) provides access to the current txid, total input sum, and total output sum — useful for fee verification and induction proof contracts.</p>
+<p><strong>Native Opcodes and Fee Policy:</strong> Radiant provides six native opcodes: OP_BLAKE3, OP_K12 (hashing), OP_LSHIFT, OP_RSHIFT (bitwise shifts), OP_2MUL, OP_2DIV (numeric scaling). The minimum relay fee is 0.1 RXD/kB (active since block 415,000). Additionally, <code>OP_PUSH_TX_STATE</code> (0xed) provides access to the current txid, total input sum, and total output sum — useful for fee verification and induction proof contracts.</p>
 </blockquote>
 
 <hr>

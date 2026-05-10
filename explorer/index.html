@@ -656,9 +656,8 @@ async function renderDashboard() {
     // Blockchain panel
     netHTML += '<div class="net-panel"><h4>Blockchain</h4>';
     netHTML += `<div class="net-row"><span class="nr-label">Block Height</span><span class="nr-value" style="color:var(--accent)">${fmtNum(height)}</span></div>`;
-    const v2Active = v2R?.activated;
-    netHTML += `<div class="net-row"><span class="nr-label">V2 Hard Fork</span><span class="nr-value">${v2Active ? '<span class="badge badge-success">Active</span>' : v2R ? `<span class="badge badge-pending">${fmtNum(v2R.blocks_remaining)} blocks</span>` : '—'}</span></div>`;
-    if (v2R) netHTML += `<div class="net-row"><span class="nr-label">Fork Height</span><span class="nr-value">${fmtNum(v2R.activation_height)}</span></div>`;
+    const v2Active = v2R?.activated ?? true; // Always active post-fork
+    netHTML += `<div class="net-row"><span class="nr-label">Native Opcodes</span><span class="nr-value"><span class="badge badge-success">Active</span></span></div>`;
     netHTML += `<div class="net-row"><span class="nr-label">Glyph Tokens</span><span class="nr-value">${fmtNum(glyphR?.total_tokens || glyphR?.total)}</span></div>`;
     const dmintCount = glyphR?.by_type?.dMint ?? glyphR?.by_type?.['4'] ?? glyphR?.by_type?.dmint ?? dmintR?.total_contracts ?? 0;
     netHTML += `<div class="net-row"><span class="nr-label">dMint Tokens</span><span class="nr-value">${fmtNum(dmintCount)}</span></div>`;

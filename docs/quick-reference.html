@@ -16,7 +16,7 @@
         <button class="hamburger" onclick="document.querySelector('.nav-links').classList.toggle('open')" aria-label="Menu">&#9776;</button>
         <ul class="nav-links">
             <li><a href="../#features">Features</a></li>
-            <li><a href="../#v2-upgrade">V2 Upgrade</a></li>
+            <li><a href="../#opcodes">Opcodes</a></li>
             <li><a href="./" class="nav-active">Docs</a></li>
             <li><a href="../#ecosystem">Ecosystem</a></li>
             <li><a href="../#mining">Mining</a></li>
@@ -47,7 +47,7 @@
 <tr><td><strong>Block Time</strong></td><td>5 minutes</td><td>5 minutes</td></tr>
 <tr><td><strong>Block Size</strong></td><td>256 MB</td><td>256 MB</td></tr>
 <tr><td><strong>Algorithm</strong></td><td>SHA512/256</td><td>SHA512/256</td></tr>
-<tr><td><strong>Core 2.0 Activation</strong></td><td>Block 410,000</td><td>Block 410,000</td></tr>
+<tr><td><strong>Native Opcodes</strong></td><td>Active (block 410,000)</td><td>Active (block 410,000)</td></tr>
 <tr><td><strong>Fee Enforcement</strong></td><td>Block 415,000</td><td>Block 6,000</td></tr>
 </tbody>
 </table>
@@ -224,17 +224,17 @@ docker stop radiant</code></pre>
 </tbody>
 </table>
 
-<h3>V2 Hard Fork Opcodes (Activation: Block 410,000)</h3>
+<h3>Native Hash and Shift Opcodes</h3>
 
-<p>New and re-enabled opcodes introduced in Radiant Core 2.1, gated behind <code>SCRIPT_ENHANCED_REFERENCES</code>:</p>
+<p>Cryptographic hashing and arithmetic opcodes for on-chain PoW validation and DAA computation:</p>
 
 <table>
 <thead><tr><th>Opcode</th><th>Hex</th><th>Stack</th><th>Description</th></tr></thead>
 <tbody>
 <tr><td>OP_BLAKE3</td><td>EE</td><td>data → hash</td><td>Blake3 hash (32-byte output)</td></tr>
 <tr><td>OP_K12</td><td>EF</td><td>data → hash</td><td>KangarooTwelve hash (32-byte output)</td></tr>
-<tr><td>OP_LSHIFT</td><td>98</td><td>a b → (a &lt;&lt; b)</td><td>Bitwise left shift (re-enabled)</td></tr>
-<tr><td>OP_RSHIFT</td><td>99</td><td>a b → (a &gt;&gt; b)</td><td>Bitwise right shift (re-enabled)</td></tr>
+<tr><td>OP_LSHIFT</td><td>98</td><td>a b → (a &lt;&lt; b)</td><td>Bitwise left shift</td></tr>
+<tr><td>OP_RSHIFT</td><td>99</td><td>a b → (a &gt;&gt; b)</td><td>Bitwise right shift</td></tr>
 <tr><td>OP_2MUL</td><td>8D</td><td>a → (a * 2)</td><td>Multiply by 2</td></tr>
 <tr><td>OP_2DIV</td><td>8E</td><td>a → (a / 2)</td><td>Divide by 2 (truncation toward zero)</td></tr>
 </tbody>
@@ -242,7 +242,7 @@ docker stop radiant</code></pre>
 
 <p><strong>Use cases:</strong></p>
 <ul>
-<li><strong>OP_BLAKE3 / OP_K12</strong>: On-chain PoW validation for Glyph v2 dMint tokens</li>
+<li><strong>OP_BLAKE3 / OP_K12</strong>: On-chain PoW validation for dMint tokens</li>
 <li><strong>OP_LSHIFT / OP_RSHIFT</strong>: On-chain ASERT-lite DAA computation via bit shifts</li>
 <li><strong>OP_2MUL / OP_2DIV</strong>: Numeric scaling for DAA and contract arithmetic</li>
 </ul>

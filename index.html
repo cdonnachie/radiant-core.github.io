@@ -546,7 +546,7 @@
         <button class="hamburger" onclick="document.querySelector('.nav-links').classList.toggle('open')" aria-label="Menu">&#9776;</button>
         <ul class="nav-links">
             <li><a href="#features">Features</a></li>
-            <li><a href="#v2-upgrade">V2 Upgrade</a></li>
+            <li><a href="#specs">Opcodes</a></li>
             <li><a href="#specs">Specs</a></li>
             <li><a href="#ecosystem">Ecosystem</a></li>
             <li><a href="#mining">Mining</a></li>
@@ -634,6 +634,11 @@
                 <p>32 MB script size, 32 million operations per script, 200+ opcodes including SHA256, BLAKE3, K12, ECDSA, Schnorr, and bitwise shifts. Full smart contract capability on a UTXO model.</p>
             </div>
             <div class="feature-card">
+                <div class="feature-icon icon-blue">&#x2699;&#xfe0f;</div>
+                <h3>Native Hash Opcodes</h3>
+                <p>On-chain BLAKE3 and KangarooTwelve (K12) hash verification enables trustless dMint token mining with multiple proof-of-work algorithms verified directly in consensus scripts.</p>
+            </div>
+            <div class="feature-card">
                 <div class="feature-icon icon-green">&#x2699;&#xfe0f;</div>
                 <h3>UTXO + References</h3>
                 <p>Extends the UTXO model with persistent references that allow outputs to reference other outputs across transactions — enabling contract state, token tracking, and cross-input validation.</p>
@@ -647,44 +652,44 @@
     </div>
 </section>
 
-<!-- ── V2 HARD FORK ── -->
-<hr class="section-divider">
-<section id="v2-upgrade">
+<!-- ── OPCODE DETAILS ── -->
+<hr class="section-divider" id="opcodes">
+<section>
     <div class="container">
-        <div class="v2-banner">
-            <h2>V2 Hard Fork <span class="badge">Block 410,000</span></h2>
-            <p>The V2 upgrade introduces six new consensus-level opcodes that enable fully trustless on-chain dMint token mining, multi-algorithm proof-of-work verification, and efficient bitwise arithmetic — all without external indexer dependencies.</p>
-            <div class="opcode-grid">
-                <div class="opcode-card">
-                    <code>OP_BLAKE3 (0xee)</code>
-                    <h4>BLAKE3 Hashing</h4>
-                    <p>Native on-chain BLAKE3 hash — enables trustless verification of Blake3-mined dMint tokens directly in script.</p>
-                </div>
-                <div class="opcode-card">
-                    <code>OP_K12 (0xef)</code>
-                    <h4>KangarooTwelve</h4>
-                    <p>On-chain K12 hash built on KeccakF permutation. High-throughput token mining with on-chain PoW validation.</p>
-                </div>
-                <div class="opcode-card">
-                    <code>OP_LSHIFT (0x98)</code>
-                    <h4>Left Bit Shift</h4>
-                    <p>Re-enabled bitwise left shift for on-chain DAA (difficulty adjustment algorithm) computations in dMint contracts.</p>
-                </div>
-                <div class="opcode-card">
-                    <code>OP_RSHIFT (0x99)</code>
-                    <h4>Right Bit Shift</h4>
-                    <p>Re-enabled bitwise right shift, paired with LSHIFT for efficient ASERT-lite difficulty calculations on-chain.</p>
-                </div>
-                <div class="opcode-card">
-                    <code>OP_2MUL (0x8d)</code>
-                    <h4>Multiply by 2</h4>
-                    <p>Re-enabled fast doubling opcode. Useful in DAA arithmetic chains and compact numeric computations.</p>
-                </div>
-                <div class="opcode-card">
-                    <code>OP_2DIV (0x8e)</code>
-                    <h4>Divide by 2</h4>
-                    <p>Re-enabled fast halving with truncation toward zero. Complements OP_2MUL for symmetric arithmetic.</p>
-                </div>
+        <div class="section-header">
+            <h2>Native Opcode Extensions</h2>
+            <p>Radiant provides specialized opcodes for cryptographic hashing and efficient arithmetic operations on-chain.</p>
+        </div>
+        <div class="opcode-grid">
+            <div class="opcode-card">
+                <code>OP_BLAKE3 (0xee)</code>
+                <h4>BLAKE3 Hashing</h4>
+                <p>Native on-chain BLAKE3 hash — enables trustless verification of Blake3-mined dMint tokens directly in script.</p>
+            </div>
+            <div class="opcode-card">
+                <code>OP_K12 (0xef)</code>
+                <h4>KangarooTwelve</h4>
+                <p>On-chain K12 hash built on KeccakF permutation. High-throughput token mining with on-chain PoW validation.</p>
+            </div>
+            <div class="opcode-card">
+                <code>OP_LSHIFT (0x98)</code>
+                <h4>Left Bit Shift</h4>
+                <p>Bitwise left shift for on-chain DAA (difficulty adjustment algorithm) computations in dMint contracts.</p>
+            </div>
+            <div class="opcode-card">
+                <code>OP_RSHIFT (0x99)</code>
+                <h4>Right Bit Shift</h4>
+                <p>Bitwise right shift, paired with LSHIFT for efficient ASERT-lite difficulty calculations on-chain.</p>
+            </div>
+            <div class="opcode-card">
+                <code>OP_2MUL (0x8d)</code>
+                <h4>Multiply by 2</h4>
+                <p>Fast doubling opcode. Useful in DAA arithmetic chains and compact numeric computations.</p>
+            </div>
+            <div class="opcode-card">
+                <code>OP_2DIV (0x8e)</code>
+                <h4>Divide by 2</h4>
+                <p>Fast halving with truncation toward zero. Complements OP_2MUL for symmetric arithmetic.</p>
             </div>
         </div>
     </div>
@@ -840,7 +845,7 @@
                 <div class="eco-icon icon-green">&#x1f4cb;</div>
                 <div>
                     <h4>radiantblockchain-constants</h4>
-                    <p>Shared TypeScript constants: all opcodes (including V2), script flags, Glyph protocol IDs, WAVE types, and network limits.</p>
+                    <p>Shared TypeScript constants: all 200+ opcodes, script flags, Glyph protocol IDs, WAVE types, and network limits.</p>
                     <span class="eco-tag tag-dev">Library</span>
                 </div>
             </a>
@@ -916,11 +921,11 @@
             </div>
             <div class="mining-main">
                 <h3>Token Mining (dMint)</h3>
-                <p>Glyph dMint tokens are mined on-chain with proof-of-work validated by consensus opcodes. V2 adds native BLAKE3 and K12 hash verification.</p>
+                <p>Glyph dMint tokens are mined on-chain with proof-of-work validated by consensus. Native BLAKE3 and K12 hash opcodes enable multi-algorithm mining.</p>
                 <ul class="algo-list">
                     <li><span class="algo-badge algo-token">SHA256d</span> Classic dMint (OP_HASH256)</li>
-                    <li><span class="algo-badge algo-token">BLAKE3</span> V2 dMint (OP_BLAKE3, 0xee)</li>
-                    <li><span class="algo-badge algo-token">K12</span> V2 dMint (OP_K12, 0xef)</li>
+                    <li><span class="algo-badge algo-token">BLAKE3</span> Native dMint (OP_BLAKE3, 0xee)</li>
+                    <li><span class="algo-badge algo-token">K12</span> Native dMint (OP_K12, 0xef)</li>
                     <li><span class="algo-badge algo-token">DAA</span> On-chain difficulty via LSHIFT/RSHIFT</li>
                 </ul>
             </div>
@@ -968,7 +973,7 @@
                 <div class="opcode-card">
                     <code>Resources (6)</code>
                     <h4>Static Reference Data</h4>
-                    <p>Chain overview, opcode reference (including V2), Glyph protocols, network parameters, SDK quickstart, AI knowledge base.</p>
+                    <p>Chain overview, opcode reference (200+ opcodes), Glyph protocols, network parameters, SDK quickstart, AI knowledge base.</p>
                 </div>
             </div>
             <div class="ai-config">
@@ -1008,7 +1013,7 @@
             <a href="docs/developer-guide.html" class="opcode-card opcode-card-link">
                 <code>Developer</code>
                 <h4>Developer Guide</h4>
-                <p>radiantjs SDK, transactions, Glyph tokens, RadiantScript contracts, ElectrumX, node RPC, and V2 opcodes.</p>
+                <p>radiantjs SDK, transactions, Glyph tokens, RadiantScript contracts, ElectrumX, node RPC, and native opcodes.</p>
             </a>
             <a href="docs/mining-guide.html" class="opcode-card opcode-card-link">
                 <code>Mining</code>

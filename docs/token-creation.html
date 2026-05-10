@@ -16,7 +16,7 @@
         <button class="hamburger" onclick="document.querySelector('.nav-links').classList.toggle('open')" aria-label="Menu">&#9776;</button>
         <ul class="nav-links">
             <li><a href="../#features">Features</a></li>
-            <li><a href="../#v2-upgrade">V2 Upgrade</a></li>
+            <li><a href="../#opcodes">Opcodes</a></li>
             <li><a href="./" class="nav-active">Docs</a></li>
             <li><a href="../#ecosystem">Ecosystem</a></li>
             <li><a href="../#mining">Mining</a></li>
@@ -78,7 +78,7 @@
 <h3>Creating a Mineable Token (dMint)</h3>
 
 <blockquote>
-<p><strong>V2 Hard Fork (Block 410,000):</strong> Starting with Radiant Core 2.1, v2 dMint contracts validate proof-of-work <strong>entirely on-chain</strong> using OP_BLAKE3 and OP_K12 hash opcodes. The difficulty adjustment (DAA) is also computed on-chain via OP_LSHIFT/OP_RSHIFT. This eliminates indexer trust dependency and prevents griefing. v1 SHA256d tokens continue to work unchanged.</p>
+<p><strong>On-Chain PoW Validation:</strong> dMint contracts validate proof-of-work <strong>entirely on-chain</strong> using native OP_BLAKE3 and OP_K12 hash opcodes. The difficulty adjustment (DAA) is computed on-chain via OP_LSHIFT/OP_RSHIFT. This eliminates indexer trust dependency and prevents griefing. Multiple algorithms supported: SHA256d, BLAKE3, and K12.</p>
 </blockquote>
 
 <ol>
