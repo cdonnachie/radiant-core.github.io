@@ -842,7 +842,11 @@ async function renderAnalytics() {
     const bucketSortOrder = {'<0.01':0, '0.01-1':1, '1-10':2, '10-100':3, '100-1k':4, '1k-10k':5, '10k-100k':6, '100k-1M':7, '1M+':8, '1M-10M':8, '10M-100M':9, '100M-1B':10, '1B+':11};
 
     // Dynamically collect all non-zero buckets from API response, sorted by threshold
-    const balanceRows = balanceR ? Object.entries(balanceR).filter(([_, c]) => c > 0).sort((a, b) => (bucketSortOrder[a[0]] ?? 99) - (bucketSortOrder[b[0]] ?? 99)) : [];
+    // New API format: {bucket: {count, amount}}
+    const balanceRows = balanceR ? Object.entries(balanceR)
+        .filter(([_, data]) => (data?.count || data || 0) > 0)
+        .map(([bucket, data]) => [bucket, typeof data === 'object' ? data : {count: data, amount: 0}])
+        .sort((a, b) => (bucketSortOrder[a[0]] ?? 99) - (bucketSortOrder[b[0]] ?? 99)) : [];
     const ageOrder = ['<1d', '1d-1w', '1w-1m', '1m-3m', '3m-6m', '6m-1y', '1y-2y', '2y-3y', '3y+'];
     const agingRows = ageOrder.map(a => [a, agingR?.[a] || 0]).filter(([_, amt]) => amt > 0);
     const topRows = topR?.rows || [];
@@ -856,9 +860,11 @@ async function renderAnalytics() {
     overviewHTML += '</div>';
 
     let distHTML = '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(420px,1fr));gap:24px;margin-bottom:24px">';
-    distHTML += '<div class="table-wrap"><div class="table-header"><h3>Balance Distribution</h3></div><table><thead><tr><th>Bucket</th><th class="right">Addresses</th></tr></thead><tbody>';
-    for (const [bucket, count] of balanceRows) {
-        distHTML += `<tr><td>${escHTML(bucket)}</td><td class="right">${fmtNum(count)}</td></tr>`;
+    distHTML += '<div class="table-wrap"><div class="table-header"><h3>Balance Distribution</h3></div><table><thead><tr><th>Bucket</th><th class="right">Addresses</th><th class="right">Total Supply</th><th class="right">% of Circulating</th></tr></thead><tbody>';
+    for (const [bucket, data] of balanceRows) {
+        const count = data.count || 0;
+        const amount = data.amount || 0;
+        distHTML += `<tr><td>${escHTML(bucket)}</td><td class="right">${fmtNum(count)}</td><td class="right">${fmtCoinAmount(amount)}</td><td class="right" style="color:var(--text-muted)">${pctOfCirc(amount)}</td></tr>`;
     }
     distHTML += '</tbody></table></div>';
 
