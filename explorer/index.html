@@ -1420,9 +1420,10 @@ async function renderWave() {
 
     let statsHTML = '';
     if (statsData) {
+        const showKeys = ['total_names'];
         statsHTML = '<div class="stats-row">';
-        for (const [k, v] of Object.entries(statsData)) {
-            if (typeof v === 'number') statsHTML += statCard(k.replace(/_/g, ' '), fmtNum(v));
+        for (const k of showKeys) {
+            if (statsData[k] != null) statsHTML += statCard(k.replace(/_/g, ' '), fmtNum(statsData[k]));
         }
         statsHTML += '</div>';
     }
