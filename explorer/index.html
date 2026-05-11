@@ -395,6 +395,7 @@ const API = {
     v2Status: () => api('/v2/activation-status'),
     waveResolve: (name) => api(`/wave/resolve/${encodeURIComponent(name)}`),
     waveAvailable: (name) => api(`/wave/available/${encodeURIComponent(name)}`),
+    waveNames: (limit = 1000) => api(`/wave/names?limit=${limit}`),
     waveStats: () => api('/wave/stats'),
     mempoolStats: () => api('/mempool/stats'),
     mempoolInfo: () => api('/mempool/info'),
@@ -1410,7 +1411,12 @@ async function renderMempool() {
 
 // ─── WAVE ───
 async function renderWave() {
-    const statsData = await API.waveStats().catch(() => null);
+    app.innerHTML = loading();
+
+    const [statsData, namesData] = await Promise.all([
+        API.waveStats().catch(() => null),
+        API.waveNames(1000).catch(() => null),
+    ]);
 
     let statsHTML = '';
     if (statsData) {
@@ -1421,6 +1427,26 @@ async function renderWave() {
         statsHTML += '</div>';
     }
 
+    let namesHTML = '';
+    if (namesData && namesData.names && namesData.names.length > 0) {
+        const active = namesData.names.filter(n => !n.spent);
+        const sorted = active.sort((a, b) => (b.height || 0) - (a.height || 0));
+        namesHTML = `<h2 style="margin:24px 0 12px;font-size:1.2rem">Registered Names (${fmtNum(sorted.length)})</h2>
+        <div style="overflow-x:auto">
+        <table class="tx-table" style="width:100%">
+            <thead><tr>
+                <th>Name</th>
+                <th>Target Address</th>
+                <th>Height</th>
+            </tr></thead>
+            <tbody>${sorted.map(n => `<tr>
+                <td><strong style="color:var(--accent)">${escHTML(n.full_name)}</strong></td>
+                <td class="mono" style="font-size:0.82rem">${n.target ? escHTML(n.target) : '<span style="color:var(--text-muted)">—</span>'}</td>
+                <td>${n.height ? fmtNum(n.height) : '—'}</td>
+            </tr>`).join('')}</tbody>
+        </table></div>`;
+    }
+
     app.innerHTML = `
         <h1 class="page-title">WAVE Naming System</h1>
         <div class="wave-search">
@@ -1428,7 +1454,8 @@ async function renderWave() {
             <button class="btn btn-primary" onclick="resolveWave()">Resolve</button>
         </div>
         <div id="waveResult"></div>
-        ${statsHTML}`;
+        ${statsHTML}
+        ${namesHTML}`;
 }
 
 async function resolveWave() {
