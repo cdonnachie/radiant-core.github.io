@@ -393,9 +393,10 @@ const API = {
     dmintProfitable: (n = 20) => api(`/dmint/profitable?limit=${n}`),
     dmintAlgorithms: () => api('/dmint/algorithms'),
     v2Status: () => api('/v2/activation-status'),
-    waveResolve: (name) => api(`/wave/resolve/${encodeURIComponent(name)}`),
+    waveResolve: (name, includeDuplicates = false) => api(`/wave/resolve/${encodeURIComponent(name)}${includeDuplicates ? '?include_duplicates=true' : ''}`),
     waveAvailable: (name) => api(`/wave/available/${encodeURIComponent(name)}`),
-    waveNames: (limit = 1000) => api(`/wave/names?limit=${limit}`),
+    waveRegistrations: (name) => api(`/wave/registrations/${encodeURIComponent(name)}`),
+    waveNames: (limit = 1000, cursor = null, includeDuplicates = false) => api(`/wave/names?limit=${limit}${cursor ? `&cursor=${cursor}` : ''}${includeDuplicates ? '&include_duplicates=true' : ''}`),
     waveStats: () => api('/wave/stats'),
     mempoolStats: () => api('/mempool/stats'),
     mempoolInfo: () => api('/mempool/info'),
@@ -1126,9 +1127,16 @@ async function renderTokenDetail(ref) {
     const imgHtml = tokenImageUrl(t) || (t.embed && t.embed.data)
         ? `<div class="token-hero-img">${tokenImageHtml(t)}</div>` : `<div class="token-hero-img"><span class="no-img">&#x1f5bc;</span></div>`;
 
+    // Check for duplicate WAVE name
+    const isWaveDuplicate = t.is_wave && t.is_wave_duplicate;
+    const waveWarning = isWaveDuplicate 
+        ? `<div class="detail-row"><div class="detail-label">⚠️ WARNING</div><div class="detail-value" style="color:var(--orange);font-weight:600">DUPLICATE WAVE NAME<br><span style="font-weight:normal;font-size:0.85rem">This is NOT the canonical (first) registration. It is NOT used for name resolution. Consider burning this token.</span></div></div>`
+        : (t.is_wave ? `<div class="detail-row"><div class="detail-label">WAVE Status</div><div class="detail-value"><span class="badge badge-success">Canonical (First Registration)</span></div></div>` : '');
+
     let infoHTML = `<div class="token-hero">${imgHtml}<div class="token-hero-info"><div class="detail-panel">
         <div class="detail-row"><div class="detail-label">Name</div><div class="detail-value" style="font-weight:600;font-size:1.1rem">${escHTML(name)} ${ticker ? `(${escHTML(ticker)})` : ''}</div></div>
         <div class="detail-row"><div class="detail-label">Type</div><div class="detail-value">${typeBadge(typeId)}</div></div>
+        ${waveWarning}
         <div class="detail-row"><div class="detail-label">Reference</div><div class="detail-value"><span class="mono" style="font-size:0.78rem">${displayRef || ref}</span> ${copyBtn(ref)}</div></div>
         ${protocols.length ? `<div class="detail-row"><div class="detail-label">Protocols</div><div class="detail-value">${protocols.map(p => `<span class="badge badge-dmint" style="margin-right:4px">${p}</span>`).join('')}</div></div>` : ''}
         ${t.type_name ? `<div class="detail-row"><div class="detail-label">Type Name</div><div class="detail-value">${escHTML(t.type_name)}</div></div>` : ''}
@@ -1415,7 +1423,7 @@ async function renderWave() {
 
     const [statsData, namesData] = await Promise.all([
         API.waveStats().catch(() => null),
-        API.waveNames(1000).catch(() => null),
+        API.waveNames(1000, null, true).catch(() => null),
     ]);
 
     let statsHTML = '';
@@ -1439,13 +1447,19 @@ async function renderWave() {
                 <th>Name</th>
                 <th>Target Address</th>
                 <th>Height</th>
+                <th>Status</th>
             </tr></thead>
             <tbody>${sorted.map(n => `<tr>
                 <td><strong style="color:var(--accent)">${escHTML(n.full_name)}</strong></td>
                 <td class="mono" style="font-size:0.82rem">${n.target ? escHTML(n.target) : '<span style="color:var(--text-muted)">—</span>'}</td>
                 <td>${n.height ? fmtNum(n.height) : '—'}</td>
+                <td>${n.has_duplicates ? '<span class="badge badge-pending" title="Duplicate registrations exist (first registration is canonical)">Duplicates</span>' : '<span class="badge badge-success">Canonical</span>'}</td>
             </tr>`).join('')}</tbody>
-        </table></div>`;
+        </table></div>
+        <p style="font-size:0.82rem;color:var(--text-muted);margin-top:8px">
+            <strong>Canonical</strong> = First registration (used for resolution). 
+            <strong>Duplicates</strong> = Later registrations of the same name (ignored for resolution).
+        </p>`;
     }
 
     app.innerHTML = `
@@ -1466,21 +1480,102 @@ async function resolveWave() {
     if (!name) return;
     resultDiv.innerHTML = loading();
     try {
-        const data = await API.waveResolve(name);
+        const data = await API.waveResolve(name, true);
         if (data.available || data.resolved === false) {
             resultDiv.innerHTML = `<div class="config-banner"><h3>${escHTML(name)}</h3><p style="margin-bottom:0"><span class="badge badge-pending">Available</span> &mdash; This name is available for registration.</p></div>`;
         } else {
+            // Build status badge
+            const statusBadge = data.has_duplicates 
+                ? '<span class="badge badge-pending" title="Duplicate registrations exist">Canonical (Duplicates Present)</span>'
+                : '<span class="badge badge-success">Canonical</span>';
+            
             let details = `<div class="detail-panel">
-                <div class="detail-row"><div class="detail-label">Name</div><div class="detail-value" style="font-weight:600">${escHTML(data.name || name)}</div></div>`;
+                <div class="detail-row"><div class="detail-label">Name</div><div class="detail-value" style="font-weight:600">${escHTML(data.name || name)} ${statusBadge}</div></div>
+                <div class="detail-row"><div class="detail-label">Status</div><div class="detail-value">First (canonical) registration — used for resolution</div></div>`;
+            
+            if (data.target) {
+                details += `<div class="detail-row"><div class="detail-label">Target Address</div><div class="detail-value" class="mono">${escHTML(data.target)}</div></div>`;
+            }
+            if (data.ref) {
+                details += `<div class="detail-row"><div class="detail-label">Reference</div><div class="detail-value" class="mono">${escHTML(data.ref)}</div></div>`;
+            }
+            if (data.owner) {
+                details += `<div class="detail-row"><div class="detail-label">Owner</div><div class="detail-value" class="mono">${escHTML(data.owner)}</div></div>`;
+            }
+            
+            // Show duplicates warning and button if present
+            if (data.has_duplicates) {
+                details += `<div class="detail-row"><div class="detail-label">Warning</div><div class="detail-value" style="color:var(--orange)">⚠️ Duplicate registrations exist for this name. Only the first (canonical) registration shown above is used for resolution. Later registrations are ignored.</div></div>`;
+                details += `<div class="detail-row"><div class="detail-label">All Registrations</div><div class="detail-value"><button class="btn btn-sm btn-secondary" onclick="viewAllRegistrations('${escHTML(name)}')">View All Registrations (including duplicates)</button></div></div>`;
+            }
+            
+            // Show remaining fields (excluding already displayed)
+            const skipFields = ['name', 'target', 'ref', 'owner', 'available', 'canonical', 'has_duplicates', 'zone'];
             for (const [k, v] of Object.entries(data)) {
-                if (k === 'name') continue;
-                details += `<div class="detail-row"><div class="detail-label">${escHTML(k)}</div><div class="detail-value">${typeof v === 'object' ? `<pre style="font-size:0.82rem;margin:0">${escHTML(JSON.stringify(v, null, 2))}</pre>` : escHTML(String(v))}</div></div>`;
+                if (skipFields.includes(k)) continue;
+                if (k === 'duplicates' && Array.isArray(v) && v.length > 0) {
+                    details += `<div class="detail-row"><div class="detail-label">${escHTML(k)} (${v.length})</div><div class="detail-value"><pre style="font-size:0.82rem;margin:0">${escHTML(JSON.stringify(v, null, 2))}</pre></div></div>`;
+                } else if (!skipFields.includes(k)) {
+                    details += `<div class="detail-row"><div class="detail-label">${escHTML(k)}</div><div class="detail-value">${typeof v === 'object' ? `<pre style="font-size:0.82rem;margin:0">${escHTML(JSON.stringify(v, null, 2))}</pre>` : escHTML(String(v))}</div></div>`;
+                }
             }
             details += '</div>';
             resultDiv.innerHTML = details;
         }
     } catch (e) {
         resultDiv.innerHTML = errorBox('Lookup Failed', e.message);
+    }
+}
+
+async function viewAllRegistrations(name) {
+    const resultDiv = document.getElementById('waveResult');
+    resultDiv.innerHTML = loading();
+    try {
+        const data = await API.waveRegistrations(name);
+        if (!data.registered) {
+            resultDiv.innerHTML = `<div class="config-banner"><h3>${escHTML(name)}</h3><p style="margin-bottom:0"><span class="badge badge-pending">Not Registered</span></p></div>`;
+            return;
+        }
+        
+        let html = `<div class="detail-panel">
+            <div class="detail-row"><div class="detail-label">Name</div><div class="detail-value" style="font-weight:600">${escHTML(data.name || name)}</div></div>
+            <div class="detail-row"><div class="detail-label">Status</div><div class="detail-value"><span class="badge badge-success">Canonical (First Registration)</span></div></div>`;
+        
+        if (data.target) {
+            html += `<div class="detail-row"><div class="detail-label">Target</div><div class="detail-value" class="mono">${escHTML(data.target)}</div></div>`;
+        }
+        if (data.ref) {
+            html += `<div class="detail-row"><div class="detail-label">Reference</div><div class="detail-value" class="mono">${escHTML(data.ref)}</div></div>`;
+        }
+        if (data.owner) {
+            html += `<div class="detail-row"><div class="detail-label">Owner</div><div class="detail-value" class="mono">${escHTML(data.owner)}</div></div>`;
+        }
+        html += '</div>';
+        
+        // Show duplicates table
+        if (data.duplicates && data.duplicates.length > 0) {
+            html += `<h3 style="margin:24px 0 12px;font-size:1.1rem;color:var(--orange)">Duplicate Registrations (${data.duplicates.length})</h3>`;
+            html += `<div style="overflow-x:auto"><table class="tx-table" style="width:100%">
+                <thead><tr><th>Reference</th><th>Height</th><th>Target</th><th>Owner</th></tr></thead>
+                <tbody>`;
+            for (const dup of data.duplicates) {
+                html += `<tr style="opacity:0.7">
+                    <td class="mono" style="font-size:0.78rem">${escHTML(dup.ref || '—')}</td>
+                    <td>${dup.height ? fmtNum(dup.height) : '—'}</td>
+                    <td class="mono" style="font-size:0.78rem">${escHTML(dup.target || '—')}</td>
+                    <td class="mono" style="font-size:0.78rem">${escHTML(dup.owner ? truncHash(dup.owner, 8) : '—')}</td>
+                </tr>`;
+            }
+            html += '</tbody></table></div>';
+            html += `<p style="font-size:0.82rem;color:var(--text-muted);margin-top:12px">
+                <strong>Note:</strong> These duplicate registrations are indexed but NOT used for name resolution. 
+                Only the first (canonical) registration above is authoritative.
+            </p>`;
+        }
+        
+        resultDiv.innerHTML = html;
+    } catch (e) {
+        resultDiv.innerHTML = errorBox('Failed to Load Registrations', e.message);
     }
 }
 
