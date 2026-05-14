@@ -1439,7 +1439,7 @@ async function renderWave() {
     let namesHTML = '';
     if (namesData && namesData.names && namesData.names.length > 0) {
         const active = namesData.names.filter(n => !n.spent);
-        const sorted = active.sort((a, b) => (b.height || 0) - (a.height || 0));
+        const sorted = active.sort((a, b) => (a.height || 0) - (b.height || 0));
         namesHTML = `<h2 style="margin:24px 0 12px;font-size:1.2rem">Registered Names (${fmtNum(sorted.length)})</h2>
         <div style="overflow-x:auto">
         <table class="tx-table" style="width:100%">
@@ -1453,12 +1453,12 @@ async function renderWave() {
                 <td><strong style="color:var(--accent)">${escHTML(n.full_name)}</strong></td>
                 <td class="mono" style="font-size:0.82rem">${n.target ? escHTML(n.target) : '<span style="color:var(--text-muted)">—</span>'}</td>
                 <td>${n.height ? fmtNum(n.height) : '—'}</td>
-                <td>${n.has_duplicates ? '<span class="badge badge-pending" title="Duplicate registrations exist (first registration is canonical)">Duplicates</span>' : '<span class="badge badge-success">Canonical</span>'}</td>
+                <td>${n.has_duplicates ? '<span class="badge badge-pending" title="This is the canonical (first) registration. Later attempts to register this name were rejected as duplicates.">Canonical ★</span>' : '<span class="badge badge-success">Canonical</span>'}</td>
             </tr>`).join('')}</tbody>
         </table></div>
         <p style="font-size:0.82rem;color:var(--text-muted);margin-top:8px">
-            <strong>Canonical</strong> = First registration (used for resolution). 
-            <strong>Duplicates</strong> = Later registrations of the same name (ignored for resolution).
+            All entries listed are <strong>canonical</strong> (first registration, used for resolution). 
+            <strong>★</strong> = This name had later duplicate registration attempts (all ignored — first-registration-wins).
         </p>`;
     }
 
