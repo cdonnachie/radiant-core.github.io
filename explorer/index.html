@@ -1436,30 +1436,24 @@ async function renderWave() {
         statsHTML += '</div>';
     }
 
-    let namesHTML = '';
-    if (namesData && namesData.names && namesData.names.length > 0) {
-        const active = namesData.names.filter(n => !n.spent);
-        const sorted = active.sort((a, b) => (a.height || 0) - (b.height || 0));
-        namesHTML = `<h2 style="margin:24px 0 12px;font-size:1.2rem">Registered Names (${fmtNum(sorted.length)})</h2>
-        <div style="overflow-x:auto">
-        <table class="tx-table" style="width:100%">
+    window._waveNames = namesData && namesData.names ? namesData.names.filter(n => !n.spent) : [];
+    window._waveSortCol = 'height';
+    window._waveSortAsc = true;
+    let namesHTML = window._waveNames.length > 0
+        ? `<h2 style="margin:24px 0 12px;font-size:1.2rem">Registered Names (<span id="waveNameCount">${fmtNum(window._waveNames.length)}</span>)</h2>
+        <div style="overflow-x:auto"><table class="tx-table" id="waveNamesTable" style="width:100%">
             <thead><tr>
-                <th>Name</th>
-                <th>Target Address</th>
-                <th>Height</th>
-                <th>Status</th>
+                <th style="cursor:pointer;user-select:none" onclick="sortWaveTable('name')">Name <span id="waveSort_name"></span></th>
+                <th style="cursor:pointer;user-select:none" onclick="sortWaveTable('target')">Target Address <span id="waveSort_target"></span></th>
+                <th style="cursor:pointer;user-select:none" onclick="sortWaveTable('height')">Height <span id="waveSort_height">▲</span></th>
+                <th style="cursor:pointer;user-select:none" onclick="sortWaveTable('status')">Status <span id="waveSort_status"></span></th>
             </tr></thead>
-            <tbody>${sorted.map(n => `<tr>
-                <td><strong style="color:var(--accent)">${escHTML(n.full_name)}</strong></td>
-                <td class="mono" style="font-size:0.82rem">${n.target ? escHTML(n.target) : '<span style="color:var(--text-muted)">—</span>'}</td>
-                <td>${n.height ? fmtNum(n.height) : '—'}</td>
-                <td>${n.has_duplicates ? '<span class="badge badge-pending" title="This is the canonical (first) registration. Later attempts to register this name were rejected as duplicates.">Canonical ★</span>' : '<span class="badge badge-success">Canonical</span>'}</td>
-            </tr>`).join('')}</tbody>
+            <tbody id="waveNamesTbody"></tbody>
         </table></div>
         <p style="font-size:0.82rem;color:var(--text-muted);margin-top:8px">
-            All entries listed are <strong>canonical</strong> (first registration, used for resolution). 
+            All entries listed are <strong>canonical</strong> (first registration, used for resolution).
             <strong>★</strong> = This name had later duplicate registration attempts (all ignored — first-registration-wins).
-        </p>`;
+        </p>` : '';
     }
 
     app.innerHTML = `
@@ -1471,6 +1465,38 @@ async function renderWave() {
         <div id="waveResult"></div>
         ${statsHTML}
         ${namesHTML}`;
+    if (window._waveNames.length > 0) sortWaveTable('height');
+}
+
+function sortWaveTable(col) {
+    if (window._waveSortCol === col) {
+        window._waveSortAsc = !window._waveSortAsc;
+    } else {
+        window._waveSortCol = col;
+        window._waveSortAsc = col === 'height' ? true : true;
+    }
+    const asc = window._waveSortAsc;
+    const sorted = [...window._waveNames].sort((a, b) => {
+        let va, vb;
+        if (col === 'name')   { va = (a.full_name||'').toLowerCase(); vb = (b.full_name||'').toLowerCase(); return asc ? va.localeCompare(vb) : vb.localeCompare(va); }
+        if (col === 'target') { va = (a.target||'').toLowerCase();    vb = (b.target||'').toLowerCase();    return asc ? va.localeCompare(vb) : vb.localeCompare(va); }
+        if (col === 'height') { va = a.height||0; vb = b.height||0; return asc ? va-vb : vb-va; }
+        if (col === 'status') { va = a.has_duplicates?1:0; vb = b.has_duplicates?1:0; return asc ? va-vb : vb-va; }
+        return 0;
+    });
+    const arrow = asc ? '▲' : '▼';
+    ['name','target','height','status'].forEach(c => {
+        const el = document.getElementById('waveSort_'+c);
+        if (el) el.textContent = c === col ? arrow : '';
+    });
+    const tbody = document.getElementById('waveNamesTbody');
+    if (!tbody) return;
+    tbody.innerHTML = sorted.map(n => `<tr>
+        <td><strong style="color:var(--accent)">${escHTML(n.full_name)}</strong></td>
+        <td class="mono" style="font-size:0.82rem">${n.target ? escHTML(n.target) : '<span style="color:var(--text-muted)">—</span>'}</td>
+        <td>${n.height ? fmtNum(n.height) : '—'}</td>
+        <td>${n.has_duplicates ? '<span class="badge badge-pending" title="This is the canonical (first) registration. Later attempts to register this name were rejected as duplicates.">Canonical ★</span>' : '<span class="badge badge-success">Canonical</span>'}</td>
+    </tr>`).join('');
 }
 
 async function resolveWave() {
