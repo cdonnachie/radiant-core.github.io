@@ -1476,8 +1476,11 @@ async function renderWave() {
 async function resolveWave() {
     const input = document.getElementById('waveInput');
     const resultDiv = document.getElementById('waveResult');
-    const name = input.value.trim();
+    let name = input.value.trim();
     if (!name) return;
+    // Strip domain suffix (e.g. "rxd.rxd" → "rxd", "alice.rxd" → "alice")
+    const dotIdx = name.lastIndexOf('.');
+    if (dotIdx > 0) name = name.substring(0, dotIdx);
     resultDiv.innerHTML = loading();
     try {
         const data = await API.waveResolve(name, true);
