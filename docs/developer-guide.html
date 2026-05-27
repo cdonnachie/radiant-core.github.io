@@ -168,7 +168,9 @@ const mnemonic = radiant.Mnemonic.fromRandom();
 console.log('Seed phrase:', mnemonic.toString());
 
 const hdKey = mnemonic.toHDPrivateKey();
-const derived = hdKey.deriveChild("m/44'/0'/0'/0/0");
+// Radiant SLIP-0044 coin type is 512 (Radiant Core v3.0.0+ default).
+// Legacy pre-v3.0.0 wallets used coin type 0 — m/44'/0'/0'/0/0.
+const derived = hdKey.deriveChild("m/44'/512'/0'/0/0");
 const address = derived.publicKey.toAddress();</code></pre>
 
 <h3>Address Operations</h3>

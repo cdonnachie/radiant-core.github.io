@@ -263,7 +263,8 @@ console.log('WIF:', key.toWIF());
 // From seed phrase
 const mnemonic = radiant.Mnemonic.fromRandom();
 const hdKey = mnemonic.toHDPrivateKey();
-const derived = hdKey.deriveChild("m/44'/0'/0'/0/0");
+// Radiant SLIP-0044 coin type 512 (v3.0.0+); legacy was m/44'/0'/0'/0/0.
+const derived = hdKey.deriveChild("m/44'/512'/0'/0/0");
 
 // Build transaction
 const tx = new radiant.Transaction()

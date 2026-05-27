@@ -210,7 +210,8 @@ console.log(mnemonic);         // 12 recovery words
 const restored = AgentWallet.fromMnemonic(mnemonic, 'mainnet');
 
 // Derive sub-wallets (different paths = isolated wallets)
-const subWallet = AgentWallet.fromMnemonic(mnemonic, 'mainnet', '', "m/44'/0'/1'/0/0");
+// Radiant SLIP-0044 coin type is 512 (the legacy pre-v3.0.0 path used coin type 0).
+const subWallet = AgentWallet.fromMnemonic(mnemonic, 'mainnet', '', "m/44'/512'/1'/0/0");
 
 // Sign a transaction
 const signature = wallet.sign(txHash);</code></pre>

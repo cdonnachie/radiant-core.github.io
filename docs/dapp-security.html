@@ -144,7 +144,9 @@ async function storeKey(privateKey, password) {
 function deriveKeys(mnemonic, accountIndex = 0) {
   const seed = Mnemonic.fromPhrase(mnemonic);
   const hdKey = seed.toHDPrivateKey();
-  const path = `m/44'/0'/${accountIndex}'/0`;
+  // Radiant SLIP-0044 coin type 512 (Radiant Core v3.0.0+ default).
+  // Pre-v3.0.0 wallets used coin type 0 — use that on legacy restores only.
+  const path = `m/44'/512'/${accountIndex}'/0`;
   const account = hdKey.deriveChild(path);
   return {
     addresses: Array.from({ length: 20 }, (_, i) =>
