@@ -72,14 +72,14 @@ cd my-radiant-app
 npm init -y
 
 # Install core dependencies
-npm install @radiantblockchain/radiantjs
+npm install @radiant-core/radiantjs
 npm install @radiantblockchain/constants
 
 # Optional: ElectrumX client
 npm install ws-electrumx-client</code></pre>
 
 <h3>Hello World: Send RXD</h3>
-<pre><code>const radiant = require('@radiantblockchain/radiantjs');
+<pre><code>const radiant = require('@radiant-core/radiantjs');
 
 // Create a new private key
 const privateKey = new radiant.PrivateKey();
@@ -138,7 +138,7 @@ NETWORK=mainnet</code></pre>
 <h2 id="radiantjs">3. radiantjs SDK</h2>
 
 <h3>Core Modules</h3>
-<pre><code>const radiant = require('@radiantblockchain/radiantjs');
+<pre><code>const radiant = require('@radiant-core/radiantjs');
 
 const {
   PrivateKey,      // Key management
@@ -186,7 +186,7 @@ const parsed = new radiant.Address('1A1zP1...');
 console.log('Type:', parsed.type); // 'pubkeyhash' or 'scripthash'</code></pre>
 
 <h3>Glyph v2 Module</h3>
-<pre><code>const { Glyph } = require('@radiantblockchain/radiantjs');
+<pre><code>const { Glyph } = require('@radiant-core/radiantjs');
 
 // Constants
 console.log(Glyph.GLYPH_MAGIC);              // 'gly'
