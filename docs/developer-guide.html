@@ -658,9 +658,7 @@ const daaScript = new Script()
       "command": "npx",
       "args": ["radiant-mcp-server"],
       "env": {
-        "ELECTRUMX_HOST": "electrumx.radiantcore.org",
-        "ELECTRUMX_PORT": "50012",
-        "ELECTRUMX_SSL": "true"
+        "ELECTRUMX_HOST": "electrumx.radiantcore.org"
       }
     }
   }
@@ -670,7 +668,6 @@ const daaScript = new Script()
 
 <h3>REST API</h3>
 <pre><code>ELECTRUMX_HOST=electrumx.radiantcore.org \
-ELECTRUMX_PORT=50012 ELECTRUMX_SSL=true \
 node dist/rest.js
 
 curl http://localhost:3080/api/chain

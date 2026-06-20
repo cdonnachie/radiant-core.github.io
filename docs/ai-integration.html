@@ -189,8 +189,6 @@ GET  /api/docs/openapi.json</code></pre>
 
 <h3>Starting the REST Server</h3>
 <pre><code>ELECTRUMX_HOST=electrumx.radiantcore.org \
-ELECTRUMX_PORT=50012 \
-ELECTRUMX_SSL=true \
 node dist/rest.js</code></pre>
 
 <hr>
@@ -290,9 +288,7 @@ const proof = await mcpClient.call('radiant_create_inference_proof', {
       "command": "npx",
       "args": ["radiant-mcp-server"],
       "env": {
-        "ELECTRUMX_HOST": "electrumx.radiantcore.org",
-        "ELECTRUMX_PORT": "50012",
-        "ELECTRUMX_SSL": "true"
+        "ELECTRUMX_HOST": "electrumx.radiantcore.org"
       }
     }
   }
@@ -310,9 +306,10 @@ npx radiant-mcp-sse
 <table>
 <thead><tr><th>Variable</th><th>Default</th><th>Description</th></tr></thead>
 <tbody>
-<tr><td><code>ELECTRUMX_HOST</code></td><td>electrumx.radiant4people.com</td><td>ElectrumX server hostname</td></tr>
-<tr><td><code>ELECTRUMX_PORT</code></td><td>50012</td><td>ElectrumX server port</td></tr>
-<tr><td><code>ELECTRUMX_SSL</code></td><td>true</td><td>Use SSL/TLS connection</td></tr>
+<tr><td><code>ELECTRUMX_WSS</code></td><td>true</td><td>Connect over secure WebSocket (wss://host:443); set false for a raw TCP/SSL socket</td></tr>
+<tr><td><code>ELECTRUMX_HOST</code></td><td>electrumx.radiantcore.org</td><td>ElectrumX server hostname</td></tr>
+<tr><td><code>ELECTRUMX_PORT</code></td><td>443 (wss) / 50012 (raw)</td><td>ElectrumX server port</td></tr>
+<tr><td><code>ELECTRUMX_SSL</code></td><td>true</td><td>Use TLS for a raw socket (ignored when ELECTRUMX_WSS=true)</td></tr>
 <tr><td><code>REST_PORT</code></td><td>3080</td><td>REST API listen port</td></tr>
 <tr><td><code>AGENT_MNEMONIC</code></td><td>(none)</td><td>BIP39 mnemonic for agent wallet</td></tr>
 </tbody>
