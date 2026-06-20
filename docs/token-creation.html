@@ -78,7 +78,7 @@
 <h3>Creating a Mineable Token (dMint)</h3>
 
 <blockquote>
-<p><strong>On-Chain PoW Validation:</strong> dMint contracts validate proof-of-work <strong>entirely on-chain</strong> using native OP_BLAKE3 and OP_K12 hash opcodes. The difficulty adjustment (DAA) is computed on-chain via OP_LSHIFT/OP_RSHIFT. This eliminates indexer trust dependency and prevents griefing. Multiple algorithms supported: SHA256d, BLAKE3, and K12.</p>
+<p><strong>On-Chain PoW Validation:</strong> dMint contracts validate proof-of-work <strong>entirely on-chain</strong> using native OP_BLAKE3 and OP_K12 hash opcodes. The difficulty adjustment (DAA) is computed on-chain via integer OP_MUL/OP_DIV arithmetic. This eliminates indexer trust dependency and prevents griefing. Multiple algorithms supported: SHA256d, BLAKE3, and K12.</p>
 </blockquote>
 
 <ol>

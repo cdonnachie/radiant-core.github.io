@@ -41,14 +41,14 @@
 <table>
 <thead><tr><th>Parameter</th><th>Mainnet</th><th>Testnet</th></tr></thead>
 <tbody>
-<tr><td><strong>P2P Port</strong></td><td>7333</td><td>17333</td></tr>
-<tr><td><strong>RPC Port</strong></td><td>7332</td><td>17332</td></tr>
+<tr><td><strong>P2P Port</strong></td><td>7333</td><td>27333</td></tr>
+<tr><td><strong>RPC Port</strong></td><td>7332</td><td>27332</td></tr>
 <tr><td><strong>Address Prefix</strong></td><td>1 (P2PKH), 3 (P2SH)</td><td>m/n (P2PKH), 2 (P2SH)</td></tr>
 <tr><td><strong>Block Time</strong></td><td>5 minutes</td><td>5 minutes</td></tr>
 <tr><td><strong>Block Size</strong></td><td>256 MB</td><td>256 MB</td></tr>
 <tr><td><strong>Algorithm</strong></td><td>SHA512/256</td><td>SHA512/256</td></tr>
-<tr><td><strong>Native Opcodes</strong></td><td>Active (block 410,000)</td><td>Active (block 410,000)</td></tr>
-<tr><td><strong>Fee Enforcement</strong></td><td>Block 415,000</td><td>Block 6,000</td></tr>
+<tr><td><strong>Native Opcodes</strong></td><td>Active (block 410,000)</td><td>Active (block 1,000)</td></tr>
+<tr><td><strong>Min Relay Fee</strong></td><td>0.1 RXD/kB</td><td>0.1 RXD/kB</td></tr>
 </tbody>
 </table>
 
@@ -303,7 +303,7 @@ const txHex = tx.serialize();</code></pre>
       "command": "npx",
       "args": ["radiant-mcp-server"],
       "env": {
-        "ELECTRUMX_HOST": "electrumx.radiant4people.com",
+        "ELECTRUMX_HOST": "electrumx.radiantcore.org",
         "ELECTRUMX_PORT": "50012",
         "ELECTRUMX_SSL": "true"
       }
@@ -314,7 +314,7 @@ const txHex = tx.serialize();</code></pre>
 <table>
 <thead><tr><th>Feature</th><th>Count</th></tr></thead>
 <tbody>
-<tr><td>MCP Tools</td><td>56 (blockchain, glyph, dMint, WAVE, swap, utility, wallet, decode, AI primitives)</td></tr>
+<tr><td>MCP Tools</td><td>59 (blockchain, glyph, dMint, WAVE, swap, utility, wallet, decode, AI primitives)</td></tr>
 <tr><td>MCP Resources</td><td>10 (6 static docs + 4 live data)</td></tr>
 <tr><td>REST Endpoints</td><td>~61 at <code>http://localhost:3080/api</code></td></tr>
 <tr><td>BIP39 Wallet</td><td>12-24 word mnemonics, BIP32 HD derivation</td></tr>
@@ -328,7 +328,7 @@ const txHex = tx.serialize();</code></pre>
 
 <h3>Official</h3>
 <ul>
-<li>Website: <a href="https://radiantblockchain.org">radiantblockchain.org</a></li>
+<li>Website: <a href="https://www.radiantcore.org">radiantcore.org</a></li>
 <li>Whitepaper: <a href="https://radiantblockchain.org/radiant.pdf">radiantblockchain.org/radiant.pdf</a></li>
 <li>GitHub: <a href="https://github.com/Radiant-Core">github.com/Radiant-Core</a></li>
 </ul>

@@ -53,7 +53,7 @@
     <div class="doc-content">
 
 <blockquote>
-<p><strong>Native Opcodes and Fee Policy:</strong> Radiant provides six native opcodes: OP_BLAKE3, OP_K12 (hashing), OP_LSHIFT, OP_RSHIFT (bitwise shifts), OP_2MUL, OP_2DIV (numeric scaling). The minimum relay fee is 0.1 RXD/kB (active since block 415,000). Additionally, <code>OP_PUSH_TX_STATE</code> (0xed) provides access to the current txid, total input sum, and total output sum — useful for fee verification and induction proof contracts.</p>
+<p><strong>Native Opcodes and Fee Policy:</strong> Radiant provides six native opcodes: OP_BLAKE3, OP_K12 (hashing), OP_LSHIFT, OP_RSHIFT (bitwise shifts), OP_2MUL, OP_2DIV (numeric scaling). The minimum relay fee is 0.1 RXD/kB (Radiant Core 2 / V2 fee floor). Additionally, <code>OP_PUSH_TX_STATE</code> (0xed) provides access to the current txid, total input sum, and total output sum — useful for fee verification and induction proof contracts.</p>
 </blockquote>
 
 <hr>
@@ -242,7 +242,7 @@ async function confirmTransaction(tx) {
   default-src 'self';
   script-src 'self' 'wasm-unsafe-eval';
   style-src 'self' 'unsafe-inline';
-  connect-src 'self' wss://electrumx.radiantexplorer.com:*;
+  connect-src 'self' wss://electrumx.radiantcore.org:*;
   img-src 'self' data: https:;
   object-src 'none';
   frame-ancestors 'none';

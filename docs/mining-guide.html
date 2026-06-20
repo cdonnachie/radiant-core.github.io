@@ -49,7 +49,7 @@
 <tbody>
 <tr><td><strong>Algorithm</strong></td><td>SHA512/256</td></tr>
 <tr><td><strong>Block Time</strong></td><td>5 minutes</td></tr>
-<tr><td><strong>Block Reward</strong></td><td>25,000 RXD</td></tr>
+<tr><td><strong>Block Reward</strong></td><td>12,500 RXD</td></tr>
 <tr><td><strong>Halving Interval</strong></td><td>210,000 blocks</td></tr>
 <tr><td><strong>Difficulty Adjustment</strong></td><td>Every block (DAA)</td></tr>
 </tbody>
@@ -195,7 +195,7 @@ wildrig-multi -a sha512256d -o stratum+tcp://pool:port -u WALLET.worker -p x</co
 
 <h3>Benefits</h3>
 <ul>
-<li><strong>Full block rewards</strong> — Keep 100% of mined blocks (25,000 RXD + fees)</li>
+<li><strong>Full block rewards</strong> — Keep 100% of mined blocks (12,500 RXD + fees)</li>
 <li><strong>Privacy</strong> — No pool operator sees your mining activity</li>
 <li><strong>Independence</strong> — No pool fees or downtime concerns</li>
 <li><strong>Decentralization</strong> — Strengthens the network</li>
@@ -277,7 +277,7 @@ Password: x</code></pre>
 
 <h3>On-Chain PoW Validation</h3>
 <blockquote>
-<p>Glyph dMint contracts validate proof-of-work <strong>entirely on-chain</strong> using native hash opcodes. <code>OP_BLAKE3</code> and <code>OP_K12</code> execute hash functions natively in the script engine. The DAA is computed on-chain using <code>OP_LSHIFT</code>/<code>OP_RSHIFT</code> (ASERT-lite). No indexer trust required. This eliminates griefing attacks where invalid work could consume token state.</p>
+<p>Glyph dMint contracts validate proof-of-work <strong>entirely on-chain</strong> using native hash opcodes. <code>OP_BLAKE3</code> and <code>OP_K12</code> execute hash functions natively in the script engine. The DAA is computed on-chain using <code>OP_MUL</code>/<code>OP_DIV</code> fixed-point math (ASERT-v2). No indexer trust required. This eliminates griefing attacks where invalid work could consume token state.</p>
 </blockquote>
 
 <h3>Supported Algorithms</h3>
@@ -358,7 +358,7 @@ Daily Blocks = 24 × 60 / 5 = 288 blocks/day
 
 Example:
 Hashrate: 10 GH/s, Network: 100 TH/s, Price: $0.001/RXD
-Daily = (10 / 100,000) × 288 × 25,000 × $0.001 = $0.72/day</code></pre>
+Daily = (10 / 100,000) × 288 × 12,500 × $0.001 = $0.36/day</code></pre>
 
 <hr>
 

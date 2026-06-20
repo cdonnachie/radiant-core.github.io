@@ -41,7 +41,7 @@
 <p>Several wallets are available for storing, sending, and receiving RXD and Glyph tokens. This guide covers each option to help you choose the right wallet for your needs.</p>
 
 <blockquote>
-<p><strong>Fee Policy:</strong> Current minimum relay fee is 0.1 RXD/kB (active since block 415,000). Ensure your wallet software is updated to v2.1.0 or later for proper fee estimation.</p>
+<p><strong>Fee Policy:</strong> Current minimum relay fee is 0.1 RXD/kB (Radiant Core 2 / V2 fee floor). Ensure your wallet software is updated to v3.1.2 or later for proper fee estimation.</p>
 </blockquote>
 
 <hr>
@@ -132,9 +132,9 @@
 <table>
 <thead><tr><th>Platform</th><th>Link</th></tr></thead>
 <tbody>
-<tr><td>Windows</td><td><a href="https://github.com/RadiantBlockchain/electron-radiant/releases">GitHub Releases</a></td></tr>
-<tr><td>macOS</td><td><a href="https://github.com/RadiantBlockchain/electron-radiant/releases">GitHub Releases</a></td></tr>
-<tr><td>Linux</td><td><a href="https://github.com/RadiantBlockchain/electron-radiant/releases">GitHub Releases</a></td></tr>
+<tr><td>Windows</td><td><a href="https://github.com/Radiant-Core/Electron-Wallet/releases">GitHub Releases</a></td></tr>
+<tr><td>macOS</td><td><a href="https://github.com/Radiant-Core/Electron-Wallet/releases">GitHub Releases</a></td></tr>
+<tr><td>Linux</td><td><a href="https://github.com/Radiant-Core/Electron-Wallet/releases">GitHub Releases</a></td></tr>
 <tr><td>Android</td><td><a href="https://github.com/AntaresCommunity/AntaresCommunity">AntaresCommunity</a></td></tr>
 </tbody>
 </table>
@@ -313,7 +313,7 @@ radiant-cli -rpcwallet=mywallet backupwallet "/path/to/backup.dat"</code></pre>
 <thead><tr><th>Issue</th><th>Solution</th></tr></thead>
 <tbody>
 <tr><td>Balance shows 0</td><td>Wait for sync; check correct network; verify seed phrase was entered correctly</td></tr>
-<tr><td>Transaction stuck</td><td>Fee may be too low (min 0.01 RXD/kB); check mempool status</td></tr>
+<tr><td>Transaction stuck</td><td>Fee may be too low (min 0.1 RXD/kB); check mempool status</td></tr>
 <tr><td>"Invalid address"</td><td>Verify address format (mainnet starts with 1 or 3); check for extra spaces</td></tr>
 <tr><td>Can't connect</td><td>Check internet; try different ElectrumX server; check if maintenance is ongoing</td></tr>
 <tr><td>Glyph tokens missing</td><td>Use Photonic Wallet (only wallet with full Glyph support); check correct address</td></tr>

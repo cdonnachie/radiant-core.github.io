@@ -1175,7 +1175,7 @@ async function renderTokenDetail(ref) {
     let dmintHTML = '';
     if (t.dmint) {
         const dm = t.dmint;
-        const algoNames = { 0: 'SHA256D', 1: 'BLAKE3', 2: 'K12', 3: 'Argon2id', 4: 'RandomX' };
+        const algoNames = { 0: 'SHA256D', 1: 'BLAKE3', 2: 'K12', 3: 'Argon2id-Light', 4: 'RandomX-Light' };
         dmintHTML = '<div class="section-title"><span class="sec-icon">&#x26CF;</span> dMint Contract Info</div>';
         dmintHTML += '<div class="stats-row">';
         dmintHTML += statCard('Algorithm', dm.algorithm_name || algoNames[dm.algorithm] || 'Unknown', 'accent');
@@ -1257,7 +1257,7 @@ async function renderDmint() {
     const tokens = tokensData?.tokens || tokensData?.results || (Array.isArray(tokensData) ? tokensData : []);
     const total = tokensData?.count || tokens.length;
 
-    const algoNames = { 0: 'SHA256D', 1: 'BLAKE3', 2: 'K12', 3: 'Argon2id', 4: 'RandomX' };
+    const algoNames = { 0: 'SHA256D', 1: 'BLAKE3', 2: 'K12', 3: 'Argon2id-Light', 4: 'RandomX-Light' };
 
     // Sort by mint_count descending (most active first)
     tokens.sort((a, b) => (b.dmint?.mint_count || 0) - (a.dmint?.mint_count || 0));

@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI Integration Strategy — Radiant Core Docs</title>
-    <meta name="description" content="Radiant AI Integration Strategy: MCP server architecture, 56 tools, REST API, Agent SDK with BIP39 wallets, test coverage, and roadmap.">
+    <meta name="description" content="Radiant AI Integration Strategy: MCP server architecture, 59 tools, REST API, Agent SDK with BIP39 wallets, test coverage, and roadmap.">
     <link rel="icon" type="image/x-icon" href="../favicon.ico">
     <link rel="stylesheet" href="docs.css">
 </head>
@@ -39,7 +39,7 @@
         <ul>
             <li><a href="#executive-summary">1. Executive Summary</a></li>
             <li><a href="#architecture">2. Architecture Overview</a></li>
-            <li><a href="#mcp-tools">3. MCP Tools (56)</a></li>
+            <li><a href="#mcp-tools">3. MCP Tools (59)</a></li>
             <li><a href="#mcp-resources">4. MCP Resources (10)</a></li>
             <li><a href="#rest-api">5. REST API (~61 endpoints)</a></li>
             <li><a href="#agent-sdk">6. Agent SDK (BIP39/BIP32 Wallet)</a></li>
@@ -61,7 +61,7 @@
 <table>
 <thead><tr><th>Metric</th><th>Value</th></tr></thead>
 <tbody>
-<tr><td><strong>MCP Tools</strong></td><td>56 across 9 categories</td></tr>
+<tr><td><strong>MCP Tools</strong></td><td>59 across 12 categories</td></tr>
 <tr><td><strong>MCP Resources</strong></td><td>10 (6 static docs + 4 live data feeds)</td></tr>
 <tr><td><strong>REST Endpoints</strong></td><td>~61</td></tr>
 <tr><td><strong>Test Suites</strong></td><td>5 (225+ tests)</td></tr>
@@ -85,7 +85,7 @@
 │                  radiant-mcp-server                          │
 │                                                              │
 │  ┌──────────┐  ┌──────────┐  ┌───────────┐  ┌───────────┐  │
-│  │ 56 Tools │  │10 Resrces│  │ REST API  │  │ Agent SDK │  │
+│  │ 59 Tools │  │10 Resrces│  │ REST API  │  │ Agent SDK │  │
 │  └────┬─────┘  └────┬─────┘  └─────┬─────┘  └─────┬─────┘  │
 │       └──────────────┴──────────────┴──────────────┘        │
 │                         ▼                                    │
@@ -100,7 +100,7 @@
 
 <hr>
 
-<h2 id="mcp-tools">3. MCP Tools (56)</h2>
+<h2 id="mcp-tools">3. MCP Tools (59)</h2>
 
 <table>
 <thead><tr><th>Category</th><th>Count</th><th>Examples</th></tr></thead>
@@ -188,7 +188,7 @@ GET  /api/docs/swagger
 GET  /api/docs/openapi.json</code></pre>
 
 <h3>Starting the REST Server</h3>
-<pre><code>ELECTRUMX_HOST=electrumx.radiant4people.com \
+<pre><code>ELECTRUMX_HOST=electrumx.radiantcore.org \
 ELECTRUMX_PORT=50012 \
 ELECTRUMX_SSL=true \
 node dist/rest.js</code></pre>
@@ -290,7 +290,7 @@ const proof = await mcpClient.call('radiant_create_inference_proof', {
       "command": "npx",
       "args": ["radiant-mcp-server"],
       "env": {
-        "ELECTRUMX_HOST": "electrumx.radiant4people.com",
+        "ELECTRUMX_HOST": "electrumx.radiantcore.org",
         "ELECTRUMX_PORT": "50012",
         "ELECTRUMX_SSL": "true"
       }
@@ -325,7 +325,7 @@ npx radiant-mcp-sse
 <table>
 <thead><tr><th>Suite</th><th>Tests</th><th>Description</th></tr></thead>
 <tbody>
-<tr><td>Smoke</td><td>66</td><td>All 56 tools + 10 resources register correctly</td></tr>
+<tr><td>Smoke</td><td>66</td><td>All 59 tools + 10 resources register correctly</td></tr>
 <tr><td>Primitives</td><td>47</td><td>Agent wallet, BIP39, address derivation, signing</td></tr>
 <tr><td>Compiler</td><td>33</td><td>RadiantScript compilation integration</td></tr>
 <tr><td>Tx-Builder</td><td>73</td><td>Transaction building, fee estimation, batch send, burn, token UTXOs</td></tr>
@@ -377,6 +377,8 @@ npm test -- --grep "tx-builder"</code></pre>
 <tr><td>1.2.0</td><td>45</td><td>compile_script (RadiantScript integration)</td></tr>
 <tr><td>1.3.0</td><td>49</td><td>send_rxd, create_ft, create_nft, transfer_token</td></tr>
 <tr><td>1.4.0</td><td>56</td><td>7 agent enhancement tools: build_tx, estimate_fee, send_batch, watch_address, derive_address, burn_token, get_token_utxos</td></tr>
+<tr><td>1.5.0</td><td>59</td><td>"Audit response" release: server-side keyring (register/list/remove key), radiant_reconnect tool, V2 fee-floor defaults (10,000 photons/byte), REST auth + loopback-only lockdown</td></tr>
+<tr><td>1.5.1</td><td>59</td><td>Dependency security patches (MCP SDK → 1.29.x); no tool changes</td></tr>
 </tbody>
 </table>
 

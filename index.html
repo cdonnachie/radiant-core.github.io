@@ -567,7 +567,7 @@
         <h1>Peer-to-Peer Digital Assets<br>with <span class="accent">Induction Proofs</span></h1>
         <p class="subtitle">Radiant is a UTXO-based Layer 1 blockchain with native on-chain token indexing, Turing-complete smart contracts, and trustless asset validation — secured by SHA512/256d proof of work.</p>
         <div class="hero-buttons">
-            <a href="https://github.com/Radiant-Core/Radiant-Core/releases" class="btn btn-primary">Radiant Core Node v3.1.1</a>
+            <a href="https://github.com/Radiant-Core/Radiant-Core/releases" class="btn btn-primary">Radiant Core Node v3.1.2</a>
             <a href="https://photonic-wallet.com" class="btn btn-secondary">Photonic Wallet</a>
             <a href="https://glyph-miner.com" class="btn btn-secondary">Glyph Miner</a>
         </div>
@@ -761,8 +761,8 @@
             </div>
             <div class="spec-item">
                 <div class="label">Default Port</div>
-                <div class="value">7332 (mainnet)</div>
-                <div class="note">RPC: 7333, Testnet: 17332</div>
+                <div class="value">7333 (mainnet P2P)</div>
+                <div class="note">RPC: 7332, Testnet: 27332</div>
             </div>
         </div>
     </div>
@@ -869,7 +869,7 @@
                 <div class="eco-icon icon-blue">&#x1f916;</div>
                 <div>
                     <h4>Radiant MCP Server</h4>
-                    <p>Model Context Protocol server for AI agents. 29 MCP tools, 6 resources, 25 REST endpoints, OpenAPI 3.1 spec, SSE transport. Query chain state, tokens, WAVE names, and dMint contracts.</p>
+                    <p>Model Context Protocol server for AI agents. 59 MCP tools, 10 resources, 60+ REST endpoints, OpenAPI 3.1 spec, SSE transport. Query chain state, tokens, WAVE names, and dMint contracts.</p>
                     <span class="eco-tag tag-ai">AI</span>
                 </div>
             </a>
@@ -916,7 +916,7 @@
                 <ul class="algo-list">
                     <li><span class="algo-badge algo-pow">SHA512/256d</span> Network consensus — block mining</li>
                     <li><span class="algo-badge algo-pow">ASERT</span> Difficulty adjustment algorithm</li>
-                    <li><span class="algo-badge algo-pow">P2P</span> Default port 7332, DNS seed bootstrap</li>
+                    <li><span class="algo-badge algo-pow">P2P</span> Default port 7333, DNS seed bootstrap</li>
                 </ul>
             </div>
             <div class="mining-main">
@@ -951,7 +951,7 @@
                     <p>Chain info, balances, UTXOs, transaction history, block headers, fee estimation, broadcast signed transactions.</p>
                 </div>
                 <div class="opcode-card">
-                    <code>Glyph Tokens (9)</code>
+                    <code>Glyph Tokens (10)</code>
                     <h4>Token Operations</h4>
                     <p>Get token info, list by address, search by name, decode CBOR metadata, validate protocol combinations, parse envelopes.</p>
                 </div>
@@ -966,12 +966,12 @@
                     <p>Resolve WAVE names, check availability, reverse lookup, list subdomains, naming system statistics.</p>
                 </div>
                 <div class="opcode-card">
-                    <code>REST API (25)</code>
+                    <code>REST API (60+)</code>
                     <h4>HTTP Endpoints</h4>
                     <p>Full REST API with OpenAPI 3.1 spec. Same functionality accessible to any HTTP client, web app, or backend service.</p>
                 </div>
                 <div class="opcode-card">
-                    <code>Resources (6)</code>
+                    <code>Resources (10)</code>
                     <h4>Static Reference Data</h4>
                     <p>Chain overview, opcode reference (200+ opcodes), Glyph protocols, network parameters, SDK quickstart, AI knowledge base.</p>
                 </div>
@@ -984,7 +984,7 @@
       "command": "node",
       "args": ["/path/to/radiant-mcp-server/dist/index.js"],
       "env": {
-        "ELECTRUMX_HOST": "electrumx.radiant4people.com",
+        "ELECTRUMX_HOST": "electrumx.radiantcore.org",
         "ELECTRUMX_PORT": "50012",
         "ELECTRUMX_SSL": "true"
       }
@@ -1033,7 +1033,7 @@
             <a href="docs/ai-integration.html" class="opcode-card opcode-card-link">
                 <code>AI / MCP</code>
                 <h4>AI Integration Strategy</h4>
-                <p>56 MCP tools, REST API, Agent SDK with BIP39 wallets, AI-native smart contracts, and test coverage.</p>
+                <p>59 MCP tools, REST API, Agent SDK with BIP39 wallets, AI-native smart contracts, and test coverage.</p>
             </a>
         </div>
         <p class="docs-more"><a href="docs/">View All Documentation →</a></p>
@@ -1053,17 +1053,17 @@
                 <div class="step-number">1</div>
                 <h3>Run a Full Node</h3>
                 <p>Download the latest release and start syncing the blockchain.</p>
-                <div class="code-block">docker pull radiantcore/radiant-node:v3.1.1
+                <div class="code-block">docker pull radiantcore/radiant-node:v3.1.2
 docker run -d -p 7332:7332 -p 7333:7333 \
-  radiantcore/radiant-node:v3.1.1</div>
+  radiantcore/radiant-node:v3.1.2</div>
             </div>
             <div class="step-card">
                 <div class="step-number">2</div>
                 <h3>Build with radiantjs</h3>
                 <p>Use the JavaScript SDK to create transactions, tokens, and smart contracts.</p>
-                <div class="code-block">npm install @aspect/radiantjs
+                <div class="code-block">npm install @radiant-core/radiantjs
 
-const radiant = require('@aspect/radiantjs');
+const radiant = require('@radiant-core/radiantjs');
 const tx = new radiant.Transaction();</div>
             </div>
             <div class="step-card">
@@ -1163,7 +1163,7 @@ contract TokenLock(pubkey owner) {
         </div>
         <div class="footer-bottom">
             <span>&copy; 2022–2026 Radiant Core Contributors. Open source under MIT License.</span>
-            <span>v3.1.1</span>
+            <span>v3.1.2</span>
         </div>
     </div>
 </footer>

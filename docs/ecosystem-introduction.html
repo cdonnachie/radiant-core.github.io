@@ -58,7 +58,7 @@
 <tr><td><strong>Block Size</strong></td><td>256 MB</td></tr>
 <tr><td><strong>Max Supply</strong></td><td>21,000,000,000 RXD</td></tr>
 <tr><td><strong>Decimals</strong></td><td>8 (like Bitcoin)</td></tr>
-<tr><td><strong>Block Reward</strong></td><td>25,000 RXD (halving every 210,000 blocks)</td></tr>
+<tr><td><strong>Block Reward</strong></td><td>12,500 RXD (genesis 50,000; halving every 210,000 blocks)</td></tr>
 </tbody>
 </table>
 
@@ -254,7 +254,7 @@
 <ol>
 <li><strong>Set Up Development Environment</strong>
 <pre><code>npm install @radiant-core/radiantjs
-npm install @radiantblockchain/constants</code></pre>
+npm install @radiant-core/constants</code></pre>
 </li>
 <li><strong>Run a Node</strong>
 <pre><code>docker run -d --name radiant-node \
@@ -285,8 +285,8 @@ npm install @radiantblockchain/constants</code></pre>
 <table>
 <thead><tr><th>Parameter</th><th>Value</th></tr></thead>
 <tbody>
-<tr><td>P2P Port</td><td>17333</td></tr>
-<tr><td>RPC Port</td><td>17332</td></tr>
+<tr><td>P2P Port</td><td>27333</td></tr>
+<tr><td>RPC Port</td><td>27332</td></tr>
 <tr><td>Address Prefix</td><td>m... or n...</td></tr>
 </tbody>
 </table>
@@ -406,9 +406,10 @@ OP_MOD    # Modulo</code></pre>
 <li><strong>Radiant Core 3.0.0</strong> — BIP44 SLIP-0044 coin-type-512 derivation default; reproducible <code>depends/</code>-based release builds</li>
 <li><strong>Radiant Core 3.1.0</strong> — Security-hardening release plus the <code>SCRIPT_SECURITY_UPGRADE</code> consensus soft fork (script size/memory/opcode-cost limits)</li>
 <li><strong>Radiant Core 3.1.1</strong> (June 2026) — Security release: relay-level memory-DoS protection, authenticated wallet encryption, and the <code>SCRIPT_SECURITY_UPGRADE</code> soft fork activating at <strong>mainnet block 440,000</strong> (mandatory upgrade)</li>
+<li><strong>Radiant Core 3.1.2</strong> (June 2026) — Deep-reorg / finalization hardening: resolves the 2026-06-15 chain split (fork at height 438,203) via finalization penalty=0 / maxreorgdepth=69 and a hardcoded checkpoint at block 438,204 (mandatory upgrade for all mainnet nodes)</li>
 <li>Glyph v2 token standard (whitepaper draft-8, Release Candidate)</li>
 <li>Multi-algorithm dMint mining (Blake3, K12 — on-chain PoW validation)</li>
-<li>AI Integration (radiant-mcp-server: 56 MCP tools, REST API, Agent SDK)</li>
+<li>AI Integration (radiant-mcp-server: 59 MCP tools, REST API, Agent SDK)</li>
 <li>Induction proof support in RadiantScript</li>
 <li>WAVE naming system — human-readable on-chain names as mutable NFTs, with a name marketplace (live on mainnet)</li>
 </ul>
