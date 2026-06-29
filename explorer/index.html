@@ -935,6 +935,8 @@ async function renderBlockDetail(height) {
     const bDiff = diffFromBits(h.bits);
     const bHashrate = hashrateFromDiff(bDiff);
     const bReward = getBlockReward(data.height);
+    const blockHash = data.hash || data.block_hash || data.blockhash || null;
+    const txCount = data.tx_count != null ? data.tx_count : (data.txids ? data.txids.length : null);
 
     app.innerHTML = `
         <div class="breadcrumb"><a href="#/">Home</a> / <a href="#/blocks">Blocks</a> / Block #${fmtNum(data.height)}</div>
@@ -943,10 +945,13 @@ async function renderBlockDetail(height) {
             ${statCard('Difficulty', bDiff ? bDiff.toLocaleString(undefined,{maximumFractionDigits:2}) : '—', 'accent')}
             ${statCard('Hashrate (est.)', bHashrate ? fmtHashrate(bHashrate) : '—', 'purple')}
             ${statCard('Block Reward', fmtNum(bReward) + ' RXD', 'green')}
+            ${txCount != null ? statCard('Transactions', fmtNum(txCount), 'orange') : ''}
         </div>
         <div class="detail-panel">
+            ${blockHash ? `<div class="detail-row"><div class="detail-label">Block Hash</div><div class="detail-value"><span class="mono">${truncHash(blockHash, 24)}</span> ${copyBtn(blockHash)}</div></div>` : ''}
             <div class="detail-row"><div class="detail-label">Height</div><div class="detail-value">${fmtNum(data.height)}</div></div>
             <div class="detail-row"><div class="detail-label">Timestamp</div><div class="detail-value">${fmtDate(h.timestamp)} (${timeAgo(h.timestamp)})</div></div>
+            ${txCount != null ? `<div class="detail-row"><div class="detail-label">Transactions</div><div class="detail-value">${fmtNum(txCount)}</div></div>` : ''}
             <div class="detail-row"><div class="detail-label">Version</div><div class="detail-value mono">0x${h.version.toString(16).padStart(8, '0')}</div></div>
             <div class="detail-row"><div class="detail-label">Previous Block</div><div class="detail-value"><span class="mono">${prevLink}</span> ${copyBtn(h.prevHash)}</div></div>
             <div class="detail-row"><div class="detail-label">Merkle Root</div><div class="detail-value"><span class="mono">${truncHash(h.merkleRoot, 20)}</span> ${copyBtn(h.merkleRoot)}</div></div>
@@ -1490,12 +1495,15 @@ function sortWaveTable(col) {
     });
     const tbody = document.getElementById('waveNamesTbody');
     if (!tbody) return;
-    tbody.innerHTML = sorted.map(n => `<tr>
-        <td><strong style="color:var(--accent)">${escHTML(n.full_name)}</strong></td>
-        <td class="mono" style="font-size:0.82rem">${n.target ? escHTML(n.target) : '<span style="color:var(--text-muted)">—</span>'}</td>
-        <td>${n.height ? fmtNum(n.height) : '—'}</td>
-        <td>${n.has_duplicates ? '<span class="badge badge-pending" title="This is the canonical (first) registration. Later attempts to register this name were rejected as duplicates.">Canonical ★</span>' : '<span class="badge badge-success">Canonical</span>'}</td>
-    </tr>`).join('');
+    tbody.innerHTML = sorted.map(n => {
+        const ref72 = n.ref ? refTo72Hex(n.ref) : null;
+        return `<tr ${ref72 ? `style="cursor:pointer" onclick="navigate('/token/${ref72}')"` : ''}>
+            <td><strong style="color:var(--accent)">${escHTML(n.full_name)}</strong></td>
+            <td class="mono" style="font-size:0.82rem">${n.target ? escHTML(n.target) : '<span style="color:var(--text-muted)">—</span>'}</td>
+            <td>${n.height ? fmtNum(n.height) : '—'}</td>
+            <td>${n.has_duplicates ? '<span class="badge badge-pending" title="This is the canonical (first) registration. Later attempts to register this name were rejected as duplicates.">Canonical ★</span>' : '<span class="badge badge-success">Canonical</span>'}</td>
+        </tr>`;
+    }).join('');
 }
 
 async function resolveWave() {
@@ -1522,13 +1530,14 @@ async function resolveWave() {
                 <div class="detail-row"><div class="detail-label">Status</div><div class="detail-value">First (canonical) registration — used for resolution</div></div>`;
             
             if (data.target) {
-                details += `<div class="detail-row"><div class="detail-label">Target Address</div><div class="detail-value" class="mono">${escHTML(data.target)}</div></div>`;
+                details += `<div class="detail-row"><div class="detail-label">Target Address</div><div class="detail-value"><span class="mono">${escHTML(data.target)}</span> ${copyBtn(data.target)}</div></div>`;
             }
             if (data.ref) {
-                details += `<div class="detail-row"><div class="detail-label">Reference</div><div class="detail-value" class="mono">${escHTML(data.ref)}</div></div>`;
+                const refHex = refTo72Hex(data.ref);
+                details += `<div class="detail-row"><div class="detail-label">Reference</div><div class="detail-value"><span class="mono" style="font-size:0.82rem">${escHTML(data.ref)}</span> <a href="#/token/${refHex}" class="btn btn-secondary btn-sm" style="margin-left:8px">View Token ↗</a></div></div>`;
             }
             if (data.owner) {
-                details += `<div class="detail-row"><div class="detail-label">Owner</div><div class="detail-value" class="mono">${escHTML(data.owner)}</div></div>`;
+                details += `<div class="detail-row"><div class="detail-label">Owner</div><div class="detail-value"><span class="mono">${escHTML(data.owner)}</span></div></div>`;
             }
             
             // Show duplicates warning and button if present
@@ -1570,13 +1579,14 @@ async function viewAllRegistrations(name) {
             <div class="detail-row"><div class="detail-label">Status</div><div class="detail-value"><span class="badge badge-success">Canonical (First Registration)</span></div></div>`;
         
         if (data.target) {
-            html += `<div class="detail-row"><div class="detail-label">Target</div><div class="detail-value" class="mono">${escHTML(data.target)}</div></div>`;
+            html += `<div class="detail-row"><div class="detail-label">Target</div><div class="detail-value"><span class="mono">${escHTML(data.target)}</span></div></div>`;
         }
         if (data.ref) {
-            html += `<div class="detail-row"><div class="detail-label">Reference</div><div class="detail-value" class="mono">${escHTML(data.ref)}</div></div>`;
+            const refHex = refTo72Hex(data.ref);
+            html += `<div class="detail-row"><div class="detail-label">Reference</div><div class="detail-value"><span class="mono" style="font-size:0.82rem">${escHTML(data.ref)}</span> <a href="#/token/${refHex}" class="btn btn-secondary btn-sm" style="margin-left:8px">View Token ↗</a></div></div>`;
         }
         if (data.owner) {
-            html += `<div class="detail-row"><div class="detail-label">Owner</div><div class="detail-value" class="mono">${escHTML(data.owner)}</div></div>`;
+            html += `<div class="detail-row"><div class="detail-label">Owner</div><div class="detail-value"><span class="mono">${escHTML(data.owner)}</span></div></div>`;
         }
         html += '</div>';
         
@@ -1621,12 +1631,18 @@ async function renderSearch(query) {
         } catch (e) { /* not a block */ }
     }
 
-    if (/^[a-fA-F0-9]{64}$/.test(query)) {
+    if (/^[a-fA-F0-9]{64}$/i.test(query)) {
         sections += `<div class="search-section"><h3>Transaction</h3><a href="#/tx/${query}" class="btn btn-secondary btn-sm">View Transaction ${truncHash(query)}</a></div>`;
     }
 
-    if (/^[a-fA-F0-9]{72}$/.test(query)) {
+    if (/^[a-fA-F0-9]{72}$/i.test(query)) {
         sections += `<div class="search-section"><h3>Token Reference</h3><a href="#/token/${query}" class="btn btn-secondary btn-sm">View Token ${truncHash(query)}</a></div>`;
+    }
+
+    // txid_vout ref format (e.g. abc...64_0)
+    if (/^[a-fA-F0-9]{64}_\d+$/i.test(query)) {
+        const r72 = refTo72Hex(query);
+        sections += `<div class="search-section"><h3>Token Reference</h3><a href="#/token/${r72}" class="btn btn-secondary btn-sm">View Token ${truncHash(query, 12)}</a></div>`;
     }
 
     try {
@@ -1651,6 +1667,23 @@ async function renderSearch(query) {
             sections += '</div></div>';
         }
     } catch (e) { /* search failed */ }
+
+    // Try WAVE name resolution for text queries that didn't match other patterns
+    if (!/^\d+$/.test(query) && !/^[a-fA-F0-9]{64}$/i.test(query) && !/^[a-fA-F0-9]{72}$/i.test(query) && !/^[a-fA-F0-9]{64}_\d+$/i.test(query)) {
+        const waveName = query.includes('.') ? query.slice(0, query.lastIndexOf('.')) : query;
+        try {
+            const wr = await API.waveResolve(waveName);
+            if (!wr.available && wr.target) {
+                const ref72 = wr.ref ? refTo72Hex(wr.ref) : null;
+                sections += `<div class="search-section"><h3>WAVE Name</h3>
+                    <div class="detail-panel">
+                        <div class="detail-row"><div class="detail-label">Name</div><div class="detail-value"><strong style="color:var(--accent)">${escHTML(wr.name || waveName)}</strong></div></div>
+                        <div class="detail-row"><div class="detail-label">Resolves to</div><div class="detail-value"><span class="mono">${escHTML(wr.target)}</span></div></div>
+                        ${ref72 ? `<div class="detail-row"><div class="detail-label">Token</div><div class="detail-value"><a href="#/token/${ref72}" class="btn btn-secondary btn-sm">View Token ↗</a></div></div>` : ''}
+                    </div></div>`;
+            }
+        } catch(e) { /* not a WAVE name */ }
+    }
 
     if (!sections) sections = emptyState('&#x1f50d;', `No results found for "${escHTML(query)}"`);
     app.innerHTML = `<h1 class="page-title">Search Results <span class="subtitle">for "${escHTML(query)}"</span></h1>${sections}`;
@@ -1704,6 +1737,7 @@ function handleSearch(query) {
     if (/^\d+$/.test(query)) navigate(`/block/${query}`);
     else if (/^[a-fA-F0-9]{64}$/i.test(query)) navigate(`/tx/${query}`);
     else if (/^[a-fA-F0-9]{72}$/i.test(query)) navigate(`/token/${query}`);
+    else if (/^[a-fA-F0-9]{64}_\d+$/i.test(query)) navigate(`/token/${refTo72Hex(query)}`);
     else navigate(`/search/${encodeURIComponent(query)}`);
 }
 

@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WAVE Names — Radiant Core Docs</title>
+    <meta name="description" content="WAVE names are human-readable names on Radiant backed by mutable Glyph NFTs. Learn how first-registration-wins works, how to register, how to resolve a name to an address in code, and the REST API reference.">
+    <link rel="icon" type="image/x-icon" href="../favicon.ico">
+    <link rel="stylesheet" href="docs.css">
+</head>
+<body>
+
+<nav class="navbar">
+    <div class="container">
+        <a href="../" class="nav-brand"><img src="../radiant-logo-darkmode.jpg" alt="Radiant"> Radiant Core</a>
+        <button class="hamburger" onclick="document.querySelector('.nav-links').classList.toggle('open')" aria-label="Menu">&#9776;</button>
+        <ul class="nav-links">
+            <li><a href="../#features">Features</a></li>
+            <li><a href="../#opcodes">Opcodes</a></li>
+            <li><a href="./" class="nav-active">Docs</a></li>
+            <li><a href="../#ecosystem">Ecosystem</a></li>
+            <li><a href="../#mining">Mining</a></li>
+            <li><a href="../explorer/">Explorer</a></li>
+            <li><a href="https://github.com/Radiant-Core" class="nav-cta">GitHub ↗</a></li>
+        </ul>
+    </div>
+</nav>
+
+<div class="doc-container">
+    <div class="breadcrumb"><a href="./">Docs</a> <span class="sep">/</span> <span>WAVE Names</span></div>
+
+    <div class="doc-header">
+        <h1>WAVE Names: Human-Readable Names on Radiant</h1>
+        <div class="doc-meta"><span>Version 1.0</span> <span>Last Updated: June 2026</span></div>
+    </div>
+
+    <nav class="doc-toc">
+        <h3>Contents</h3>
+        <ul>
+            <li><a href="#what">1. What Are WAVE Names?</a></li>
+            <li><a href="#first-reg">2. First-Registration-Wins</a></li>
+            <li><a href="#register">3. Registering a Name</a></li>
+            <li><a href="#resolve-code">4. Resolving a Name in Code</a></li>
+            <li><a href="#api">5. REST API Reference</a></li>
+            <li><a href="#faq">6. Notes &amp; FAQ</a></li>
+        </ul>
+    </nav>
+
+    <div class="doc-content">
+
+<h2 id="what">1. What Are WAVE Names?</h2>
+
+<p>A <strong>WAVE name</strong> is a human-readable name on the Radiant blockchain — for example <code>satoshi.rxd</code> — that points at a payment address. Instead of asking someone to send RXD to <code>1Rxd…long…address</code>, they can send to <code>satoshi.rxd</code> and your wallet resolves the name to the right address.</p>
+
+<p>Under the hood, every WAVE name is a <strong>mutable <a href="token-creation.html">Glyph NFT</a></strong>. The NFT holds the name's metadata — including its current <code>target</code> address — and whoever holds the NFT controls the name. Because the NFT is <em>mutable</em>, the owner can re-point the name at a new address at any time (e.g. when rotating wallets) without losing the name itself.</p>
+
+<ul>
+<li><strong>Human-readable</strong> — names map to addresses, profiles, and DNS-like records.</li>
+<li><strong>Owned, not rented</strong> — the name lives in your wallet as an NFT. Rights follow the token: transfer the NFT and you transfer the name.</li>
+<li><strong>Mutable target</strong> — update where the name points without re-registering.</li>
+<li><strong>Trustlessly resolvable</strong> — anyone can resolve a name from on-chain data; the <a href="https://github.com/Radiant-Core/RXinDexer">RXinDexer</a> REST API does the lookup for you.</li>
+</ul>
+
+<div class="callout callout-info">
+<strong>Already in production.</strong> WAVE names power addressing and profiles inside <a href="https://photonic-wallet.com/">Photonic Wallet</a> and GlyphGalaxy. This page documents the public resolution flow so <em>any</em> dapp can integrate name lookup with a copy-paste snippet.
+</div>
+
+<h2 id="first-reg">2. First-Registration-Wins</h2>
+
+<p>WAVE names are claimed on a <strong>first-registration-wins</strong> basis. If two people both mint an NFT claiming the name <code>satoshi</code>, the indexer treats the <strong>earliest</strong> registration (lowest block height, then transaction order) as the <strong>canonical</strong> one. Every later registration of the same name is recorded as a <em>duplicate</em> and is never returned by resolution.</p>
+
+<p>This means resolution is deterministic and unambiguous: <code>resolveWaveName('satoshi')</code> always returns the canonical owner's current address, regardless of how many copycats exist. The canonical NFT can still be transferred or sold — rights follow the token — but a newcomer cannot hijack a name simply by minting a clone after the fact.</p>
+
+<div class="callout callout-warn">
+<strong>Register early.</strong> Because the first valid registration is canonical forever, there is no way to "take over" a name that someone else already claimed. Check availability (see <a href="#api">the API reference</a>) and register the names you want before someone else does.
+</div>
+
+<h2 id="register">3. Registering a Name</h2>
+
+<p>The easiest way to register a WAVE name today is <a href="https://photonic-wallet.com/">Photonic Wallet</a>, the reference Radiant wallet that mints the WAVE NFT for you and lets you set and update its target address:</p>
+
+<ol>
+<li>Open <a href="https://photonic-wallet.com/">Photonic Wallet</a> and make sure your wallet is funded with a small amount of RXD (registration is an on-chain mint, so it costs a network fee).</li>
+<li>Go to the <strong>WAVE / Names</strong> section and search for the name you want — the wallet checks availability against the indexer.</li>
+<li>If the name is free, mint the registration. This creates the mutable Glyph NFT that <em>is</em> your name.</li>
+<li>Set the <strong>target</strong> to the address you want the name to resolve to. You can update this later from the same screen.</li>
+</ol>
+
+<p>Once the registration transaction confirms and the indexer ingests it, the name resolves through the public API immediately — no extra publishing step.</p>
+
+<h2 id="resolve-code">4. Resolving a Name in Code</h2>
+
+<p>You don't need to parse any on-chain data yourself. Drop the dependency-free <a href="wave-resolver.js">wave-resolver.js</a> module into your dapp. It calls the public <a href="https://github.com/Radiant-Core/RXinDexer">RXinDexer</a> REST API and returns a plain <code>{ address, ref, owner }</code> object (or <code>null</code> if the name is unregistered). It works in any environment with a global <code>fetch</code> — modern browsers, Deno, and Node.js 18+.</p>
+
+<p><a href="wave-resolver.js"><strong>⬇ Download wave-resolver.js</strong></a> (ESM, no dependencies)</p>
+
+<pre><code>const DEFAULT_API_BASE = 'https://radiantcore.org/api';
+
+// Normalize: trim, lowercase, strip an optional ".rxd" suffix.
+function normalizeWaveName(name) {
+  if (typeof name !== 'string') throw new TypeError('WAVE name must be a string');
+  let n = name.trim().toLowerCase();
+  if (n.endsWith('.rxd')) n = n.slice(0, -4);
+  return n;
+}
+
+async function getJson(url) {
+  const res = await fetch(url, { headers: { accept: 'application/json' } });
+  if (!res.ok) throw new Error(`WAVE API returned HTTP ${res.status} for ${url}`);
+  return res.json();
+}
+
+// Resolve a name -> { address, ref, owner } | null (null = unregistered).
+export async function resolveWaveName(name, apiBase = DEFAULT_API_BASE) {
+  const bare = normalizeWaveName(name);
+  if (!bare) return null;
+  const base = apiBase.replace(/\/+$/, '');
+  const data = await getJson(`${base}/wave/resolve/${encodeURIComponent(bare)}`);
+  // Unregistered names come back as { available: true, resolved: false }.
+  if (!data || data.available || data.resolved === false) return null;
+  const address = data.target || (data.zone &amp;&amp; data.zone.address) || null;
+  if (!address) return null;
+  return { address, ref: data.ref ?? null, owner: data.owner ?? null };
+}
+
+// Is a name free to register?
+export async function isWaveAvailable(name, apiBase = DEFAULT_API_BASE) {
+  const bare = normalizeWaveName(name);
+  if (!bare) return false;
+  const base = apiBase.replace(/\/+$/, '');
+  const data = await getJson(`${base}/wave/available/${encodeURIComponent(bare)}`);
+  return Boolean(data &amp;&amp; data.available);
+}</code></pre>
+
+<h3>Usage: resolve, then send RXD</h3>
+
+<pre><code>import { resolveWaveName } from './wave-resolver.js';
+
+const hit = await resolveWaveName('satoshi.rxd');
+if (!hit) {
+  console.log('Name is not registered — nothing to pay.');
+} else {
+  console.log('Pay this address:', hit.address); // current target address
+  console.log('Canonical ref:', hit.ref);        // "txid_vout"
+  console.log('Owner scripthash:', hit.owner);
+
+  // Build the payment with radiantjs (https://github.com/Radiant-Core/radiantjs).
+  // Amounts are in photons (1 RXD = 100,000,000 photons).
+  const tx = new radiant.Transaction()
+    .from(utxos)
+    .to(hit.address, 100_000_000) // send 1 RXD
+    .change(myChangeAddress)
+    .sign(myPrivateKey);
+
+  await electrum.broadcast(tx.toString());
+}</code></pre>
+
+<div class="callout callout-info">
+<strong>Error vs. not-found.</strong> <code>resolveWaveName</code> returns <code>null</code> only when a name is genuinely unregistered. If the indexer is unreachable or returns an error (e.g. HTTP 503 when the WAVE index is offline), it <em>throws</em> — so you can tell "no such name" apart from "couldn't reach the indexer" and avoid sending funds on a failed lookup.</div>
+
+<h3>Checking availability</h3>
+
+<pre><code>import { isWaveAvailable } from './wave-resolver.js';
+
+if (await isWaveAvailable('myhandle')) {
+  // Free — register it in Photonic Wallet: https://photonic-wallet.com/
+} else {
+  console.log('Taken — try another name.');
+}</code></pre>
+
+<h2 id="api">5. REST API Reference</h2>
+
+<p>All endpoints are served by the public <a href="https://github.com/Radiant-Core/RXinDexer">RXinDexer</a> instance under the base URL <code>https://radiantcore.org/api</code>. They are <code>GET</code>-only, return JSON, and require no authentication. If you run your own indexer, point <code>apiBase</code> at it instead.</p>
+
+<h3>GET /wave/resolve/{name}</h3>
+<p>Resolve a name to its canonical registration and current target address.</p>
+<table>
+<thead><tr><th>Parameter</th><th>In</th><th>Description</th></tr></thead>
+<tbody>
+<tr><td><code>name</code></td><td>path</td><td>The name to resolve, 1–63 chars (without the <code>.rxd</code> suffix).</td></tr>
+<tr><td><code>include_duplicates</code></td><td>query</td><td>Optional. <code>true</code> to also list non-canonical duplicate registrations.</td></tr>
+</tbody>
+</table>
+<p><strong>Registered →</strong> <code>200</code></p>
+<pre><code>{
+  "name": "satoshi",
+  "ref": "txid_vout",
+  "target": "1RxdPaymentAddress...",   // the address to pay (mutable)
+  "zone": {                            // DNS-like records (any field may be null)
+    "address": "1RxdPaymentAddress...",
+    "display": "Satoshi",
+    "avatar": null,
+    "url": "https://example.com",
+    "TXT": ["hello"]
+  },
+  "owner": "32-byte-hex-scripthash",
+  "available": false,
+  "canonical": true,
+  "has_duplicates": false
+}</code></pre>
+<p><strong>Unregistered →</strong> <code>200</code></p>
+<pre><code>{ "name": "nobody", "available": true, "resolved": false }</code></pre>
+<p><strong>Index offline →</strong> <code>503</code> &nbsp;<code>{ "detail": "WAVE index not available" }</code></p>
+
+<h3>GET /wave/available/{name}</h3>
+<p>Check whether a name is free to register.</p>
+<table>
+<thead><tr><th>Parameter</th><th>In</th><th>Description</th></tr></thead>
+<tbody>
+<tr><td><code>name</code></td><td>path</td><td>The name to check, 1–63 chars.</td></tr>
+</tbody>
+</table>
+<p><strong>Available →</strong> <code>{ "available": true, "name": "myhandle" }</code></p>
+<p><strong>Taken →</strong> <code>{ "available": false, "ref": "txid_vout", "name": "satoshi" }</code></p>
+
+<h3>GET /wave/names</h3>
+<p>List all canonical (first-registration) WAVE names. Results are paginated with an opaque cursor.</p>
+<table>
+<thead><tr><th>Parameter</th><th>In</th><th>Description</th></tr></thead>
+<tbody>
+<tr><td><code>limit</code></td><td>query</td><td>Max results per page. Default <code>500</code>, maximum <code>2000</code>.</td></tr>
+<tr><td><code>cursor</code></td><td>query</td><td>Opaque pagination token. Pass the <code>next_cursor</code> from the previous response to fetch the next page. Omit for the first page.</td></tr>
+<tr><td><code>include_duplicates</code></td><td>query</td><td>Optional. <code>true</code> adds a <code>has_duplicates</code> flag to each entry.</td></tr>
+</tbody>
+</table>
+<p><strong>Response →</strong> <code>200</code></p>
+<pre><code>{
+  "names": [
+    {
+      "name": "satoshi",
+      "domain": "rxd",
+      "full_name": "satoshi.rxd",
+      "target": "1RxdPaymentAddress...",
+      "ref": "txid_vout",
+      "height": 410100,
+      "spent": false,
+      "canonical": true
+    }
+  ],
+  "total": 1,
+  "next_cursor": "eyJjaGFyX2lkeCI6IDUsInJlZiI6IC..."  // null when no more pages
+}</code></pre>
+<p>To page through every name, keep calling the endpoint and feeding the previous <code>next_cursor</code> back in until <code>next_cursor</code> is <code>null</code>:</p>
+<pre><code>async function* allWaveNames(apiBase = 'https://radiantcore.org/api') {
+  let cursor = null;
+  do {
+    const url = new URL(`${apiBase}/wave/names`);
+    url.searchParams.set('limit', '1000');
+    if (cursor) url.searchParams.set('cursor', cursor);
+    const page = await fetch(url).then(r => r.json());
+    for (const entry of page.names) yield entry;
+    cursor = page.next_cursor;
+  } while (cursor);
+}
+
+for await (const name of allWaveNames()) {
+  console.log(name.full_name, '->', name.target);
+}</code></pre>
+
+<h3>Other endpoints</h3>
+<table>
+<thead><tr><th>Endpoint</th><th>Purpose</th></tr></thead>
+<tbody>
+<tr><td><code>GET /wave/registrations/{name}</code></td><td>Canonical registration plus every duplicate registration of a name.</td></tr>
+<tr><td><code>GET /wave/reverse/{scripthash}</code></td><td>Reverse lookup: every name owned by a given scripthash.</td></tr>
+<tr><td><code>GET /wave/stats</code></td><td>Index health and totals (names, zones, owners).</td></tr>
+</tbody>
+</table>
+
+<h2 id="faq">6. Notes &amp; FAQ</h2>
+
+<p><strong>Does the target address change?</strong> Yes — that's the point of a mutable name. Always resolve a name fresh at payment time rather than caching the address indefinitely; the owner may have re-pointed it.</p>
+
+<p><strong>What about the <code>.rxd</code> suffix?</strong> The on-chain name is the bare label (e.g. <code>satoshi</code>); <code>.rxd</code> is just the display domain. The resolver strips it for you, so <code>satoshi</code> and <code>satoshi.rxd</code> resolve identically.</p>
+
+<p><strong>Can I run my own resolver backend?</strong> Yes. Every endpoint above is part of <a href="https://github.com/Radiant-Core/RXinDexer">RXinDexer</a>, which is open source. Run your own instance and pass its base URL as the <code>apiBase</code> argument to keep resolution fully self-hosted.</p>
+
+<p><strong>Is resolution trustless?</strong> The canonical-registration rule is computed from on-chain data, so independent indexers converge on the same answer. For high-value payments, resolve against more than one indexer (or your own node) and confirm the <code>ref</code> matches before sending.</p>
+
+    </div>
+    <div class="doc-footer">
+        <span><a href="./">← All Docs</a></span>
+        <span>&copy; 2022–2026 Radiant Core Contributors</span>
+    </div>
+</div>
+</body>
+</html>

@@ -31,7 +31,7 @@
 
     <div class="doc-header">
         <h1>Radiant Quick Reference</h1>
-        <div class="doc-meta"><span>Last Updated: February 2026</span></div>
+        <div class="doc-meta"><span>Last Updated: June 2026</span></div>
     </div>
 
     <div class="doc-content">
@@ -48,7 +48,7 @@
 <tr><td><strong>Block Size</strong></td><td>256 MB</td><td>256 MB</td></tr>
 <tr><td><strong>Algorithm</strong></td><td>SHA512/256</td><td>SHA512/256</td></tr>
 <tr><td><strong>Native Opcodes</strong></td><td>Active (block 410,000)</td><td>Active (block 1,000)</td></tr>
-<tr><td><strong>Min Relay Fee</strong></td><td>0.1 RXD/kB</td><td>0.1 RXD/kB</td></tr>
+<tr><td><strong>Min Relay Fee</strong></td><td>~0.1 RXD/kB (10,000 photons/byte)</td><td>~0.01 RXD/kB (1,000 photons/byte)</td></tr>
 </tbody>
 </table>
 
@@ -78,6 +78,7 @@ photons = RXD × 100,000,000</code></pre>
 <table>
 <thead><tr><th>Server</th><th>TCP</th><th>SSL</th><th>WSS</th></tr></thead>
 <tbody>
+<tr><td>electrumx.radiantcore.org</td><td>—</td><td>—</td><td>443 (wss, Caddy TLS proxy)</td></tr>
 <tr><td>electrumx.radiantexplorer.com</td><td>50010</td><td>50012</td><td>50011</td></tr>
 <tr><td>electrumx.radiantblockchain.org</td><td>50010</td><td>50012</td><td>50011</td></tr>
 <tr><td>electrumx.radiant4people.com</td><td>50010</td><td>50012</td><td>50011</td></tr>
@@ -224,15 +225,17 @@ docker stop radiant</code></pre>
 </tbody>
 </table>
 
-<h3>Native Hash and Shift Opcodes</h3>
+<h3>Native Hash, Shift, and Arithmetic Opcodes</h3>
 
-<p>Cryptographic hashing and arithmetic opcodes for on-chain PoW validation and DAA computation:</p>
+<p>Re-enabled and new opcodes for on-chain PoW validation, DAA computation, and contract arithmetic:</p>
 
 <table>
 <thead><tr><th>Opcode</th><th>Hex</th><th>Stack</th><th>Description</th></tr></thead>
 <tbody>
 <tr><td>OP_BLAKE3</td><td>EE</td><td>data → hash</td><td>Blake3 hash (32-byte output)</td></tr>
 <tr><td>OP_K12</td><td>EF</td><td>data → hash</td><td>KangarooTwelve hash (32-byte output)</td></tr>
+<tr><td>OP_MUL</td><td>95</td><td>a b → (a * b)</td><td>Multiply two integers</td></tr>
+<tr><td>OP_DIV</td><td>96</td><td>a b → (a / b)</td><td>Integer division (truncation toward zero)</td></tr>
 <tr><td>OP_LSHIFT</td><td>98</td><td>a b → (a &lt;&lt; b)</td><td>Bitwise left shift</td></tr>
 <tr><td>OP_RSHIFT</td><td>99</td><td>a b → (a &gt;&gt; b)</td><td>Bitwise right shift</td></tr>
 <tr><td>OP_2MUL</td><td>8D</td><td>a → (a * 2)</td><td>Multiply by 2</td></tr>
@@ -243,8 +246,9 @@ docker stop radiant</code></pre>
 <p><strong>Use cases:</strong></p>
 <ul>
 <li><strong>OP_BLAKE3 / OP_K12</strong>: On-chain PoW validation for dMint tokens</li>
-<li><strong>OP_LSHIFT / OP_RSHIFT</strong>: On-chain ASERT-lite DAA computation via bit shifts</li>
-<li><strong>OP_2MUL / OP_2DIV</strong>: Numeric scaling for DAA and contract arithmetic</li>
+<li><strong>OP_MUL / OP_DIV</strong>: dMint v2 DAA — fixed-point ASERT arithmetic (RADIX 2^16); replaces the v1 shift-based approach</li>
+<li><strong>OP_LSHIFT / OP_RSHIFT</strong>: Bitwise shift operations available for general contract use</li>
+<li><strong>OP_2MUL / OP_2DIV</strong>: Numeric scaling for contract arithmetic</li>
 </ul>
 
 <hr>
@@ -333,6 +337,7 @@ const txHex = tx.serialize();</code></pre>
 
 <h3>Explorers</h3>
 <ul>
+<li><a href="https://radiantcore.org/explorer/">radiantcore.org/explorer</a> — Glyph, WAVE, dMint, analytics</li>
 <li><a href="https://radiantexplorer.com">radiantexplorer.com</a></li>
 <li><a href="https://glyph-explorer.rxd-radiant.com">glyph-explorer.rxd-radiant.com</a></li>
 </ul>

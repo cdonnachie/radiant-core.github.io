@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Radiant SDK — Radiant Core Docs</title>
+    <meta name="description" content="@radiant-core/sdk is a TypeScript SDK for building Radiant (RXD) dapps: an ElectrumX client, ref-safe UTXO selection that never burns tokens, Glyph token mint/transfer, WAVE name resolution, and SLIP-0044 HD wallets. Install, quickstart, and API overview.">
+    <link rel="icon" type="image/x-icon" href="../favicon.ico">
+    <link rel="stylesheet" href="docs.css">
+</head>
+<body>
+
+<nav class="navbar">
+    <div class="container">
+        <a href="../" class="nav-brand"><img src="../radiant-logo-darkmode.jpg" alt="Radiant"> Radiant Core</a>
+        <button class="hamburger" onclick="document.querySelector('.nav-links').classList.toggle('open')" aria-label="Menu">&#9776;</button>
+        <ul class="nav-links">
+            <li><a href="../#features">Features</a></li>
+            <li><a href="../#opcodes">Opcodes</a></li>
+            <li><a href="./" class="nav-active">Docs</a></li>
+            <li><a href="../#ecosystem">Ecosystem</a></li>
+            <li><a href="../#mining">Mining</a></li>
+            <li><a href="../explorer/">Explorer</a></li>
+            <li><a href="https://github.com/Radiant-Core" class="nav-cta">GitHub ↗</a></li>
+        </ul>
+    </div>
+</nav>
+
+<div class="doc-container">
+    <div class="breadcrumb"><a href="./">Docs</a> <span class="sep">/</span> <span>Radiant SDK</span></div>
+
+    <div class="doc-header">
+        <h1>Radiant SDK: Build Radiant dapps in TypeScript</h1>
+        <div class="doc-meta"><span>@radiant-core/sdk v0.1.0</span> <span>Last Updated: June 2026</span></div>
+    </div>
+
+    <nav class="doc-toc">
+        <h3>Contents</h3>
+        <ul>
+            <li><a href="#what">1. What Is the Radiant SDK?</a></li>
+            <li><a href="#install">2. Installation</a></li>
+            <li><a href="#connect">3. Connect &amp; Read Balances</a></li>
+            <li><a href="#wallet">4. Wallets &amp; Keys</a></li>
+            <li><a href="#send">5. Sending RXD (Ref-Safe)</a></li>
+            <li><a href="#tokens">6. Glyph Tokens</a></li>
+            <li><a href="#wave">7. WAVE Names</a></li>
+            <li><a href="#api">8. API Overview</a></li>
+            <li><a href="#notes">9. Notes &amp; Links</a></li>
+        </ul>
+    </nav>
+
+    <div class="doc-content">
+
+<h2 id="what">1. What Is the Radiant SDK?</h2>
+
+<p><strong><code>@radiant-core/sdk</code></strong> is the clean TypeScript SDK most web and app developers reach for first. It lets you build Radiant (RXD) dapps — wallets, marketplaces, games, payment flows — <em>without</em> reading internal wallet or library source. It wraps <a href="https://github.com/Radiant-Core/radiantjs">radiantjs</a> (the low-level tx/script library) and adds the ecosystem-specific pieces app devs actually need.</p>
+
+<ul>
+<li><strong>ElectrumX WebSocket client</strong> — balances, UTXOs, broadcast, live subscriptions, auto-reconnect.</li>
+<li><strong>Ref-safe UTXO selection</strong> — token-bearing UTXOs are <em>never</em> spent as RXD funding, so you can't accidentally burn a token.</li>
+<li><strong>Glyph tokens</strong> — mint fungible tokens and NFTs, and transfer them (commit/reveal handled for you).</li>
+<li><strong>WAVE names</strong> — resolve <code>alice.rxd</code> → address.</li>
+<li><strong>HD wallets</strong> — <code>m/44'/512'/0'/0/k</code> (SLIP-0044 coin type 512).</li>
+<li><strong>Tree-shakeable ESM + CJS</strong>, TypeScript types included, photons as <code>BigInt</code> throughout.</li>
+</ul>
+
+<div class="callout callout-info">
+<strong>SDK vs. radiantjs.</strong> <a href="https://github.com/Radiant-Core/radiantjs">radiantjs</a> is the low-level engine (keys, raw transactions, scripts, signing). <code>@radiant-core/sdk</code> is the application layer built on top of it (networking, token-safe funding, Glyph, WAVE, units). You install <strong>only the SDK</strong> — radiantjs comes along as a dependency and you never touch its API directly.
+</div>
+
+<h2 id="install">2. Installation</h2>
+
+<pre><code>npm install @radiant-core/sdk
+# Node &lt; 22 has no global WebSocket — also install the optional peer:
+npm install ws</code></pre>
+
+<p>Requires <strong>Node 20.19+ or 22+</strong> (radiantjs pulls in an ESM-only dependency that needs <code>require(ESM)</code> support). Ships dual ESM + CJS with bundled types.</p>
+
+<div class="callout callout-info">
+<strong>Units.</strong> Every amount in the SDK is in <strong>photons</strong> as a <code>BigInt</code> — <code>1 RXD = 100,000,000 photons</code>. Convert only at your UI edge with <code>rxdToPhotons()</code> / <code>photonsToRxd()</code>. Never do balance math in floating point.
+</div>
+
+<h2 id="connect">3. Connect &amp; Read Balances</h2>
+
+<p>The <code>ElectrumClient</code> speaks JSON-RPC over a single reconnecting WebSocket. Scripthash methods accept a plain address (the scripthash is computed for you).</p>
+
+<pre><code>import { ElectrumClient, photonsToRxd } from '@radiant-core/sdk';
+
+const client = new ElectrumClient({ network: 'mainnet' });
+await client.connect();
+
+const address = '1Yourradiantaddress...';
+const { confirmed, unconfirmed } = await client.getBalance(address);
+console.log(`Confirmed: ${photonsToRxd(confirmed)} RXD`);
+
+const utxos = await client.listUnspent(address); // Utxo[] (photons as BigInt)
+
+// React to incoming payments:
+await client.subscribe(address, (status) =&gt; {
+  console.log('address changed:', status); // re-fetch balance/UTXOs here
+});</code></pre>
+
+<p>The default mainnet endpoint is <code>wss://electrumx.radiantcore.org:443</code>; pass <code>endpoint</code> to point at your own ElectrumX/RXinDexer.</p>
+
+<h2 id="wallet">4. Wallets &amp; Keys</h2>
+
+<p>Create or restore a BIP39 HD wallet. Derivation defaults to the Radiant path <code>m/44'/512'/account'/0/index</code>.</p>
+
+<pre><code>import { HDWallet } from '@radiant-core/sdk';
+
+// New wallet
+const mnemonic = HDWallet.generateMnemonic();
+const wallet = HDWallet.fromMnemonic(mnemonic, { network: 'mainnet' });
+
+const me = wallet.deriveKey(0);   // m/44'/512'/0'/0/0
+console.log(me.path, me.address, me.scriptHash);
+
+// Batch derive a gap of receive addresses
+const receive = wallet.deriveRange(0, 20);   // DerivedKey[]</code></pre>
+
+<h2 id="send">5. Sending RXD (Ref-Safe)</h2>
+
+<p>The single most important safety property of the SDK: <strong>funding is never gathered by a value heuristic.</strong> A UTXO that carries a token ref (FT/NFT/dMint) looks like plain value to a naive selector, but spending it as funding <em>burns the token</em>. <code>selectRxdFunding</code> screens every candidate two ways — indexer-reported <code>refs</code> and a local script scan — and silently excludes token UTXOs.</p>
+
+<pre><code>import { ElectrumClient, HDWallet, buildRxdTransfer, rxdToPhotons } from '@radiant-core/sdk';
+
+const client = new ElectrumClient({ network: 'mainnet' });
+const wallet = HDWallet.fromMnemonic(mnemonic);
+const me = wallet.deriveKey(0);
+
+const utxos = await client.listUnspent(me.address);
+
+const { hex, txid } = buildRxdTransfer({
+  address: me.address,
+  wif: me.wif,
+  to: '1Recipient...',
+  amount: rxdToPhotons('1.25'), // 1.25 RXD -&gt; photons
+  utxos,                        // token-bearing UTXOs are auto-excluded
+  feeRate: 10_000n,             // photons/byte (mainnet min-relay)
+});
+
+await client.broadcastTx(hex);
+console.log('sent', txid);</code></pre>
+
+<div class="callout callout-warn">
+<strong>Why this matters.</strong> On Radiant, tokens live in ordinary-looking UTXOs guarded by ref opcodes. Spend one as fee/change and the token is gone — irreversibly. If you select inputs yourself, always filter with <code>filterFundingCandidates(utxos)</code> or guard with <code>assertFundingSafe(utxos)</code> first.
+</div>
+
+<h2 id="tokens">6. Glyph Tokens</h2>
+
+<p>Mint and move <a href="token-creation.html">Glyph tokens</a> with the commit/reveal pattern handled for you. Fund from token-free UTXOs.</p>
+
+<pre><code>import { mintFT, mintNFT, transferToken, filterFundingCandidates } from '@radiant-core/sdk';
+
+const funding = filterFundingCandidates(await client.listUnspent(me.address));
+
+// Fungible token (FT amount == output photons)
+const ft = await mintFT({
+  client, address: me.address, wif: me.wif,
+  ticker: 'DEMO',
+  supply: 1_000_000n,
+  metadata: { name: 'Demo Token', desc: 'Minted with @radiant-core/sdk' },
+  fundingUtxos: funding,
+});
+console.log('FT ref:', ft.refDisplay, ft.commitTxid, ft.revealTxid);
+
+// Non-fungible token (singleton)
+const nft = await mintNFT({
+  client, address: me.address, wif: me.wif,
+  metadata: { name: 'My NFT', attrs: { rarity: 'rare' } },
+  fundingUtxos: funding,
+});
+
+// Transfer a token (FT or NFT) to a new owner
+await transferToken({
+  client, address: me.address, wif: me.wif,
+  tokenUtxo,                 // the FT/NFT UTXO (must include its on-chain script)
+  toAddress: '1Recipient...',
+  fundingUtxos: funding,     // covers the fee; token value is conserved
+});</code></pre>
+
+<div class="callout callout-info">
+<strong>Finding your tokens.</strong> The indexer keys a token UTXO under <code>scriptHash(zeroRefs(tokenScript))</code>, not the owner's plain address. To list a held token, query <code>client.listUnspent(scriptHash(zeroRefs(ftScript(owner, ref))))</code> — the entries come back with <code>refs:[{ ref, type }]</code> (<code>type</code> is <code>"normal"</code> for FT, <code>"single"</code> for an NFT singleton).
+</div>
+
+<div class="callout callout-warn">
+<strong>Test on regtest first.</strong> <code>mintFT</code> / <code>mintNFT</code> / <code>transferToken</code> broadcast real, irreversible transactions. They reproduce the proven Photonic-Wallet on-chain templates and are regtest-validated, but you should smoke-test your own flow on regtest/testnet before mainnet.
+</div>
+
+<h2 id="wave">7. WAVE Names</h2>
+
+<p>Resolve <a href="wave-names.html">WAVE names</a> to addresses through the public indexer.</p>
+
+<pre><code>import { waveResolve, waveResolveAddress } from '@radiant-core/sdk';
+
+const rec = await waveResolve('alice');        // "alice.rxd" works too
+if (rec.registered) console.log(rec.address, rec.owner, rec.expires);
+
+const addr = await waveResolveAddress('alice'); // string | null</code></pre>
+
+<h2 id="api">8. API Overview</h2>
+
+<table>
+<thead><tr><th>Area</th><th>Exports</th></tr></thead>
+<tbody>
+<tr><td>Client</td><td><code>ElectrumClient</code></td></tr>
+<tr><td>Wallet</td><td><code>HDWallet</code>, <code>Keys</code></td></tr>
+<tr><td>Funding</td><td><code>selectRxdFunding</code>, <code>filterFundingCandidates</code>, <code>isFundingSafe</code>, <code>assertFundingSafe</code>, <code>estimateFee</code>, <code>sumValue</code></td></tr>
+<tr><td>Transactions</td><td><code>buildRxdTransfer</code>, <code>buildTx</code></td></tr>
+<tr><td>Tokens</td><td><code>mintFT</code>, <code>mintNFT</code>, <code>transferToken</code>, <code>encodeGlyph</code>, <code>ftScript</code>, <code>nftScript</code>, <code>parseTokenRef</code></td></tr>
+<tr><td>WAVE</td><td><code>waveResolve</code>, <code>waveResolveAddress</code>, <code>waveLabel</code></td></tr>
+<tr><td>Script</td><td><code>scriptHash</code>, <code>addressToScriptHash</code>, <code>p2pkhScript</code>, <code>isTokenBearing</code>, <code>zeroRefs</code>, <code>packRef</code>, <code>unpackRef</code></td></tr>
+<tr><td>Units</td><td><code>rxdToPhotons</code>, <code>photonsToRxd</code></td></tr>
+<tr><td>Errors</td><td><code>RadiantSdkError</code>, <code>InsufficientFundsError</code>, <code>TokenBurnGuardError</code>, <code>ElectrumError</code>, <code>ValidationError</code></td></tr>
+</tbody>
+</table>
+
+<p>Full reference (every export, options, and return types) is in <a href="https://github.com/Radiant-Core/radiant-sdk/blob/main/docs/API.md">docs/API.md</a>.</p>
+
+<h2 id="notes">9. Notes &amp; Links</h2>
+
+<p><strong>Validated end-to-end.</strong> The SDK ships with unit tests (CI on Node 20/22/24), on-chain consensus validation against a <code>radiantd</code> regtest node (FT/NFT mint + transfer accepted), and indexer validation against RXinDexer/ElectrumX (tokens surfaced via <code>listUnspent</code> with their refs).</p>
+
+<p><strong>Fee policy.</strong> Mainnet min-relay is <code>10,000</code> photons/byte; testnet/regtest is <code>1,000</code>. The SDK sets the fee from the measured signed transaction size, so token transactions reliably clear the floor.</p>
+
+<table>
+<thead><tr><th>Resource</th><th>Link</th></tr></thead>
+<tbody>
+<tr><td>npm package</td><td><a href="https://www.npmjs.com/package/@radiant-core/sdk">@radiant-core/sdk</a></td></tr>
+<tr><td>Source &amp; issues</td><td><a href="https://github.com/Radiant-Core/radiant-sdk">github.com/Radiant-Core/radiant-sdk</a></td></tr>
+<tr><td>API reference</td><td><a href="https://github.com/Radiant-Core/radiant-sdk/blob/main/docs/API.md">docs/API.md</a></td></tr>
+<tr><td>Low-level library</td><td><a href="https://github.com/Radiant-Core/radiantjs">radiantjs</a></td></tr>
+<tr><td>Related guides</td><td><a href="developer-guide.html">Developer Guide</a> · <a href="token-creation.html">Token Creation</a> · <a href="wave-names.html">WAVE Names</a></td></tr>
+</tbody>
+</table>
+
+    </div>
+    <div class="doc-footer">
+        <span><a href="./">← All Docs</a></span>
+        <span>&copy; 2022–2026 Radiant Core Contributors</span>
+    </div>
+</div>
+</body>
+</html>
