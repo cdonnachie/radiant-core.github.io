@@ -168,6 +168,9 @@ if (await isWaveAvailable('myhandle')) {
   console.log('Taken — try another name.');
 }</code></pre>
 
+<div class="callout callout-info">
+<strong>Module exports.</strong> <a href="wave-resolver.js">wave-resolver.js</a> exports <code>resolveWaveName(name, apiBase?)</code>, <code>isWaveAvailable(name, apiBase?)</code>, <code>listWaveNames(apiBase?, pageSize?)</code> (async iterator), the <code>normalizeWaveName(name)</code> helper, and the <code>DEFAULT_API_BASE</code> constant. Pass your own indexer's base URL as <code>apiBase</code> to self-host resolution.</div>
+
 <h2 id="api">5. REST API Reference</h2>
 
 <p>All endpoints are served by the public <a href="https://github.com/Radiant-Core/RXinDexer">RXinDexer</a> instance under the base URL <code>https://radiantcore.org/api</code>. They are <code>GET</code>-only, return JSON, and require no authentication. If you run your own indexer, point <code>apiBase</code> at it instead.</p>
@@ -240,20 +243,11 @@ if (await isWaveAvailable('myhandle')) {
   "total": 1,
   "next_cursor": "eyJjaGFyX2lkeCI6IDUsInJlZiI6IC..."  // null when no more pages
 }</code></pre>
-<p>To page through every name, keep calling the endpoint and feeding the previous <code>next_cursor</code> back in until <code>next_cursor</code> is <code>null</code>:</p>
-<pre><code>async function* allWaveNames(apiBase = 'https://radiantcore.org/api') {
-  let cursor = null;
-  do {
-    const url = new URL(`${apiBase}/wave/names`);
-    url.searchParams.set('limit', '1000');
-    if (cursor) url.searchParams.set('cursor', cursor);
-    const page = await fetch(url).then(r => r.json());
-    for (const entry of page.names) yield entry;
-    cursor = page.next_cursor;
-  } while (cursor);
-}
+<p>You rarely need to drive the cursor by hand: <a href="wave-resolver.js">wave-resolver.js</a> ships a <code>listWaveNames()</code> async iterator that follows <code>next_cursor</code> for you and yields one entry at a time, fetching each page lazily.</p>
+<pre><code>import { listWaveNames } from './wave-resolver.js';
 
-for await (const name of allWaveNames()) {
+// Pages are fetched lazily as you iterate — no cursor bookkeeping.
+for await (const name of listWaveNames()) {
   console.log(name.full_name, '->', name.target);
 }</code></pre>
 
@@ -266,6 +260,10 @@ for await (const name of allWaveNames()) {
 <tr><td><code>GET /wave/stats</code></td><td>Index health and totals (names, zones, owners).</td></tr>
 </tbody>
 </table>
+
+<h3>Rate limits &amp; CORS</h3>
+<p>The public API is rate-limited to <strong>600 requests per minute per IP</strong> (10/s, burst 600); going over returns <code>HTTP 429</code>. That's generous for normal use — you typically resolve one name per payment — so as long as you resolve on demand rather than hammering the endpoint, you'll never come close. If you run a high-traffic backend, resolve server-side and cache for the duration of a payment flow, or point <code>apiBase</code> at your own <a href="https://github.com/Radiant-Core/RXinDexer">RXinDexer</a> instance.</p>
+<p>The <code>/wave/*</code> endpoints are meant to be called from the browser from any origin. If a browser <code>fetch</code> fails with a CORS error while the exact same URL works in <code>curl</code> or Node, that's a server-side CORS-header issue rather than a bug in your code — please <a href="https://github.com/Radiant-Core/RXinDexer/issues">open an issue</a>.</p>
 
 <h2 id="faq">6. Notes &amp; FAQ</h2>
 

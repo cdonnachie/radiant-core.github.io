@@ -112,3 +112,34 @@ export async function isWaveAvailable(name, apiBase = DEFAULT_API_BASE) {
   const data = await getJson(`${base}/wave/available/${encodeURIComponent(bare)}`);
   return Boolean(data && data.available);
 }
+
+/**
+ * Lazily iterate over every canonical (first-registration) WAVE name, following
+ * the `/wave/names` cursor pagination automatically so the caller never has to
+ * manage cursors. Yields one entry at a time; stops when the indexer reports no
+ * more pages. Requires `URL` (available in modern browsers and Node.js 18+).
+ *
+ * @param {string} [apiBase=DEFAULT_API_BASE] - RXinDexer REST base URL.
+ * @param {number} [pageSize=1000] - Names requested per page (server max 2000).
+ * @yields {{name: string, domain: string, full_name: string, target: string,
+ *   ref: string, height: number, spent: boolean, canonical: boolean}}
+ * @returns {AsyncGenerator<object, void, void>}
+ * @throws {Error} On network failure or a non-OK HTTP response.
+ *
+ * @example <caption>Build a name → address directory</caption>
+ * import { listWaveNames } from './wave-resolver.js';
+ * const directory = {};
+ * for await (const n of listWaveNames()) directory[n.full_name] = n.target;
+ */
+export async function* listWaveNames(apiBase = DEFAULT_API_BASE, pageSize = 1000) {
+  const base = apiBase.replace(/\/+$/, '');
+  let cursor = null;
+  do {
+    const url = new URL(`${base}/wave/names`);
+    url.searchParams.set('limit', String(pageSize));
+    if (cursor) url.searchParams.set('cursor', cursor);
+    const page = await getJson(url.toString());
+    for (const entry of page.names || []) yield entry;
+    cursor = page.next_cursor || null;
+  } while (cursor);
+}
